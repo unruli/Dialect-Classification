@@ -1,0 +1,6 @@
+# Ignore all files in the data folder
+/data/*
+
+
+# Ignore .wav, .csv, .png files
+*.wav
