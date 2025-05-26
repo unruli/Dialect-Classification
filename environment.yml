@@ -1,0 +1,24 @@
+name: diarization_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - numpy=2.1.0
+  - pandas
+  - torch=2.7.0
+  - torchaudio
+  - torchvision
+  - soundfile
+  - cython
+  - packaging
+  - scikit-learn
+  - tqdm
+  - fsspec<=2024.12.0
+  - requests
+  - pip
+  - pip:
+      - nemo-toolkit==2.3.0
+      - huggingface_hub==0.32.0
+      - hydra-core
+      - pytorch_lightning
