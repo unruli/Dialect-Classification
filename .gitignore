@@ -4,3 +4,4 @@
 
 # Ignore .wav, .csv, .png files
 *.wav
+*.zip
