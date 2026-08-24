@@ -1,0 +1,5 @@
+dataset,recordings,audio_hours,scored_hours,speaker_count_distribution,segments,speech_hours,overlap_minutes
+afrispeech_dialog,17,1.7661,1.6685,2spk=17,1263,1.4551,0.1747
+ami,16,9.0622,9.0622,3spk=1;4spk=15,7493,7.2902,63.7843
+bangor_miami_eng,28,14.8513,14.5450,2spk=26;3spk=1;4spk=1,18305,13.6727,98.4839
+playlogue,34,8.1066,8.1066,2spk=34,12500,5.5142,0.0000

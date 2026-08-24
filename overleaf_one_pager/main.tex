@@ -1,0 +1,295 @@
+\documentclass[9pt]{extarticle}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[letterpaper,top=0.40in,bottom=0.40in,left=0.46in,right=0.46in]{geometry}
+\usepackage{microtype}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{rulegray}{HTML}{9AA0A6}
+\definecolor{rowgray}{HTML}{F3F4F6}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1.8pt}
+\setlength{\columnsep}{0.25in}
+\setlength{\columnseprule}{0.2pt}
+\def\columnseprulecolor{\color{rulegray}}
+\setlist[itemize]{leftmargin=1.1em,itemsep=0.8pt,topsep=1pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=1.25em,itemsep=1.1pt,topsep=1pt,parsep=0pt}
+\titleformat{\section}{\bfseries\small}{}{0pt}{}
+\titlespacing*{\section}{0pt}{3.2pt}{1pt}
+\renewcommand{\arraystretch}{1.05}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\model}[1]{\texttt{#1}}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{center}
+  {\fontsize{14}{15.5}\selectfont\bfseries
+  Has Speaker Diarization Actually Improved?\\[-1pt]
+  Evaluating Five Years of Model Progress Beyond Standard Adult Speech}
+
+  \vspace{1.5pt}
+  {\itshape Page 1: paper concept for external evaluation}
+\end{center}
+
+\section*{Framing and aim}
+
+Speaker diarization has moved from embedding--clustering pipelines to
+overlap-aware neural systems, end-to-end speaker-activity models, and
+generative speech models that emit speaker labels and timestamps. Improvements
+on adult benchmarks do not establish whether this progress transfers to less
+represented conversational settings. This study evaluates four architectural
+families under one protocol on conventional adult meetings, African-accented
+medical conversations, adult--child interaction, and English-primary
+code-switched conversation. It asks \textbf{whether architectural progress
+produces gains across domains, whether those gains close transfer gaps, and
+which diarization failures have or have not improved}.
+
+The task is anonymous within-recording speaker attribution---\emph{who spoke
+when}---not identification across recordings. ASR is not an outcome: when a
+generative system returns words, only its speaker labels and timing are scored.
+
+\begin{multicols}{2}
+\raggedcolumns
+
+\section*{Final evaluation datasets}
+
+{\fontsize{7.0}{8.0}\selectfont
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{0.24\linewidth}p{0.27\linewidth}Y@{}}
+\toprule
+Dataset & Final subset & Role and coverage \\
+\midrule
+AMI Mix-Headset & 16 sessions; 9.06 h; one 3-speaker and fifteen 4-speaker
+meetings & Conventional adult reference; 63.78 min overlap. \\
+\rowcolor{rowgray}
+AfriSpeech-Dialog & Medical only: 17 sessions; 1.77 h; all 2-speaker &
+African-accented medical transfer; overlap insufficient. \\
+Playlogue v1 & Official test: 34 sessions; 8.11 h; all 2-speaker & Adult--child
+transfer; 2.25 h child speech (40.71\%); released RTTM has no overlap. \\
+\rowcolor{rowgray}
+Bangor Miami & 28 English-primary sessions; 14.85 h; 26 two-, one three-, and
+one four-speaker & Code-switch transfer; 98.48 min overlap. \\
+\bottomrule
+\end{tabularx}}
+
+The suite contains \textbf{95 sessions and 33.79 h}. Across the three target
+datasets, 77 of 79 sessions (97.5\%) are dyadic, reducing speaker-count
+confounding. Playlogue is retained as the closest speaker-count match to
+AfriSpeech and Bangor; child and adult errors will be reported separately.
+
+\section*{Research questions and measures}
+
+{\fontsize{7.0}{8.0}\selectfont
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{0.28\linewidth}Y@{}}
+\toprule
+Question & Purpose and primary measures \\
+\midrule
+RQ1. Have successive architectural shifts improved accuracy across domains? &
+Group comparison using DER, JER, miss, false alarm, confusion, count accuracy,
+planned family contrasts, relative error reduction, and confidence intervals. \\
+\rowcolor{rowgray}
+RQ2. Have these gains closed gaps for unconventional and less represented
+domains? & Transfer gaps relative to AMI, relative gap reduction,
+family-by-dataset interaction, rank correlation, and rank reversals. \\
+RQ3. In which speech conditions have gains and transfer been most effective? &
+Errors by overlap, boundary, short turn, counting, and confusion; boundary
+precision/recall/F1 and family-by-condition interaction. \\
+\bottomrule
+\end{tabularx}}
+
+RQ1 tests overall progress; RQ2 tests transfer rather than raw difficulty; RQ3
+locates improvements and persistent failures. Overlap claims are restricted to
+AMI and Bangor. Playlogue supports child/adult, boundary, short-turn, counting,
+and confusion analyses.
+
+\columnbreak
+
+\section*{Architecture taxonomy}
+
+The strata follow the review taxonomy of
+\href{https://doi.org/10.1016/j.csl.2021.101317}{Park \emph{et al.} (2022)}
+and the clustering/EEND/separation comparison of
+\href{https://doi.org/10.1016/j.csl.2023.101534}{Serafini \emph{et al.}
+(2023)}. We operationalize their architectural distinctions as G1--G3 and add
+G4 as an explicit post-review generative extension. The G labels are study
+strata, not a claimed consensus chronology.
+
+{\fontsize{7.0}{8.0}\selectfont
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{0.24\linewidth}Y@{}}
+\toprule
+Family & Defining shift and representative candidate \\
+\midrule
+G1: Embedding--clustering cascade & Explicit VAD, embeddings, and global
+clustering. \emph{NeMo MarbleNet + TitaNet-Large + spectral clustering}. \\
+\rowcolor{rowgray}
+G2: Neuralized overlap-aware modular & Learned powerset/multiscale activity
+with clustering for global identity. \emph{pyannote Community-1}. \\
+G3: End-to-end discriminative & Direct frame-level multispeaker activity
+without a clustering backend. \emph{NVIDIA Streaming Sortformer 4-speaker}. \\
+\rowcolor{rowgray}
+G4: Unified generative & Time-aligned anonymous speaker tokens, often generated
+with words. \emph{VibeVoice-ASR; eligibility to be confirmed in the pilot}. \\
+\bottomrule
+\end{tabularx}}
+
+Final selection requires a public versionable checkpoint, reproducible
+inference, anonymous time-aligned output, mixed-speaker compatibility, and a
+feasible common protocol. Download counts are at most an adoption tie-breaker.
+Moshi remains related work because its user/system streams are predefined.
+
+\section*{Experimental protocol}
+
+All models receive the same 16-kHz mono recordings and versioned manifest. The
+primary condition is fully automatic; an oracle-speaker-count condition
+separates counting from assignment. Outputs are converted to \textbf{Rich
+Transcription Time Marked (RTTM)} format. Complete recordings are used when
+supported; any required chunking and cross-window speaker stitching will be
+fixed after the model pilot and reported as a constraint.
+
+Primary scoring uses zero collar with overlap included where annotated; a
+0.25-second collar tests boundary sensitivity. Results are macro-averaged by
+recording and use recording-clustered bootstrap intervals. Analyses control or
+stratify for speaker count, overlap, turn duration/rate, speech proportion,
+speaker imbalance, signal quality, and dataset. Claims concern transfer and
+observed gaps, not isolated causal effects of accent, age, or domain.
+
+\section*{Expected contribution and novelty}
+
+The contribution is a \textbf{cross-family, architecture-aware transfer
+audit}, not a new model: (1) a common protocol spanning four families and four
+settings; (2) evidence of whether newer systems narrow gaps in
+African-accented medical, adult--child, and English-primary code-switched
+speech; (3) links between architectural shifts and overlap, boundary,
+short-turn, counting, and confusion errors; and (4) a reproducible distinction
+between modular, end-to-end, and generative diarization.
+
+\end{multicols}
+
+\newpage
+
+\begin{center}
+  {\fontsize{14}{15.5}\selectfont\bfseries Dataset Progress and
+  Experiment-to-Paper Roadmap}
+
+  \vspace{1.5pt}
+  {\itshape Page 2: completed work, remaining experiments, and completion gates}
+\end{center}
+
+\section*{Collection and preparation status}
+
+{\fontsize{7.25}{8.25}\selectfont
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{0.12\linewidth}p{0.43\linewidth}Y@{}}
+\toprule
+Dataset & Completed & Remaining reference action \\
+\midrule
+AMI & Sixteen official Mix-Headset test recordings, RTTM, and Un-partitioned
+Evaluation Map (UEM) files standardized and validated. & Freeze versions and
+checksums; confirm comparison-paper scoring conventions. \\
+\rowcolor{rowgray}
+AfriSpeech & Forty-six usable conversations prepared; final view selects the 17
+medical conversations. & Export medical-only manifest; manually audit filtered
+nonpositive timestamp pairs; do not infer roles from anonymous speaker IDs. \\
+Playlogue & Thirty-four official test recordings trimmed, resampled, and paired
+with official RTTM/UEM. & Preserve official split; document zero overlap in all
+158 released RTTMs; validate child/adult-conditioned scoring. \\
+\rowcolor{rowgray}
+Bangor & Twenty-eight English-primary recordings converted from timestamped
+CHAT to RTTM/UEM; code-switch metadata retained. & Align 35 untimed trusted
+tiers or mask surrounding intervals; retain all sessions. \\
+\bottomrule
+\end{tabularx}}
+
+All prepared audio is 16-kHz mono. Path, duration, RTTM/UEM, and boundary
+validation completed with zero structural errors. The prepared superset has
+124 recordings and 38.81 h; the locked medical-only evaluation view will have
+\textbf{95 recordings and 33.79 h}. Source audio remains unchanged and the
+pipeline is reproducible with \model{prepare\_inference\_datasets.py}.
+
+\begin{multicols}{2}
+\raggedcolumns
+
+\section*{Experiments still required}
+
+\begin{enumerate}
+  \item \textbf{Lock references:} resolve Bangor tiers, export medical-only
+  AfriSpeech, add checksums/version IDs, and freeze metric eligibility.
+  \item \textbf{Finalize models:} verify one candidate per family; freeze
+  checkpoints, licenses, settings, context limits, compute, and parsers.
+  \item \textbf{Balanced pilot:} sample every dataset and speaker-count regime;
+  test parsing, overlap support, count behavior, determinism, runtime, memory,
+  cost, and full-recording versus window policy.
+  \item \textbf{Primary inference:} run every model on every recording with
+  automatic count; retain raw output, RTTM, logs, failures, runtime, memory, and
+  configuration hashes.
+  \item \textbf{Controlled inference:} repeat with oracle speaker count where
+  supported; test the preregistered chunk/stitch condition only if required.
+  \item \textbf{Overall scoring:} DER, JER, miss, false alarm, confusion,
+  count error, malformed-output rate, and failure rate under zero and
+  0.25-second collars.
+  \item \textbf{RQ3 scoring:} short turns, boundaries, rapid changes,
+  imbalance, and per-speaker confusion; overlap on AMI/Bangor; child/adult on
+  Playlogue; switched/non-switched turns on Bangor.
+  \item \textbf{Statistics:} recording-level macro averages and clustered
+  bootstrap intervals; family, dataset, family-by-dataset, and
+  family-by-condition tests; corrected planned contrasts, relative gap
+  reduction, rank correlation, and rank reversal.
+  \item \textbf{Robustness audit:} both collars; with/without incidental or
+  highly imbalanced speakers; stratified manual error inspection; parser versus
+  acoustic-model failures.
+\end{enumerate}
+
+\columnbreak
+
+\section*{Final-paper analyses and artifacts}
+
+\begin{itemize}
+  \item \textbf{Table 1:} research questions, purposes, and measures.
+  \item \textbf{Table 2:} families, defining shifts, selected checkpoints,
+  parameter/access status, and output capabilities.
+  \item \textbf{Dataset table:} sessions, hours, speaker counts, child/adult
+  share, code-switch prevalence, overlap, turn structure, and limitations.
+  \item \textbf{Main results:} DER/JER and components by family $\times$
+  dataset, confidence intervals, and transfer gaps.
+  \item \textbf{Primary figure:} architectural-family trajectory on AMI versus
+  each target dataset.
+  \item \textbf{Diagnostic figure:} gain heatmap for overlap, short turns,
+  boundaries, counting, and confusion; non-eligible cells marked, not imputed.
+  \item \textbf{Reproducibility package:} locked manifests, lawful data
+  preparation, RTTM/UEM, parsers, scoring configuration, model versions,
+  environment lockfile, seeds, and raw-to-result provenance.
+\end{itemize}
+
+\section*{Completion gates}
+
+Full paper writing begins after:
+
+\begin{itemize}
+  \item \textbf{G1---Data:} references and metric eligibility are frozen.
+  \item \textbf{G2---Pilot:} all four parsers pass the balanced pilot.
+  \item \textbf{G3---Inference:} the model--recording matrix is complete or
+  failures are explicitly documented.
+  \item \textbf{G4---Analysis:} RQ1--RQ3 tables, intervals, and sensitivity
+  analyses are generated.
+\end{itemize}
+
+Write in this order: Methods and dataset table; Results; Discussion and
+limitations; Related Work and taxonomy justification; then Abstract and
+Introduction after the central empirical claim is known.
+
+\section*{Immediate next step}
+
+Finalize the four model representatives and run the balanced pilot. The
+dataset suite is otherwise mechanically ready for inference, subject to the
+small reference-quality actions listed above.
+
+\end{multicols}
+
+\end{document}
