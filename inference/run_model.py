@@ -272,6 +272,7 @@ def main():
         sys.exit(3)
 
     adapter = load_adapter(args.system)
+    system_code_revision = adapter.code_revision() if hasattr(adapter, "code_revision") else {}
 
     vad_lab_lookup = {}
     if args.vad_lab_manifest and os.path.isfile(args.vad_lab_manifest):
@@ -285,6 +286,13 @@ def main():
     run_manifest.setdefault("provenance", []).append(
         provenance.base_provenance(args.system, python_bin=sys.executable, command=" ".join(sys.argv))
     )
+    # Static, system-level facts -- refreshed (not appended) every invocation
+    # since they describe the code/checkpoint, not a specific recording.
+    # code_revision() dicts also carry known caveats (e.g. G3-A's AMI
+    # training-data overlap, G4-A's unvalidated status) -- kept verbatim here
+    # rather than summarized, so a reader of run_manifest.json alone sees them.
+    run_manifest["system_code_revision"] = system_code_revision
+    run_manifest["last_run_config"] = config_record
 
     if args.pilot:
         passes = [("smoke_90s", 90.0), ("full", None)]
@@ -325,6 +333,15 @@ def main():
 
             status = record["status"]
             run_manifest["recordings"][key] = record
+            if record.get("checkpoint_revision"):
+                # Promoted to root for a quick top-level answer to "what
+                # exact checkpoint produced this run" -- expected constant
+                # across all recordings in one invocation; last-seen wins if
+                # it somehow isn't (that itself would be worth investigating).
+                run_manifest["model_revision"] = {
+                    "checkpoint_id": record.get("checkpoint_id"),
+                    "checkpoint_revision": record.get("checkpoint_revision"),
+                }
             run_manifest["counts"][status] = run_manifest["counts"].get(status, 0) + 1
             if record.get("truncated"):
                 run_manifest["counts"]["truncated"] = run_manifest["counts"].get("truncated", 0) + 1
@@ -334,6 +351,9 @@ def main():
             print(f"    -> {status}" + (f" ({record.get('error')})" if status != "success" else
                                          f" ({record.get('wall_elapsed_sec')}s, "
                                          f"peak_gpu={record.get('peak_gpu_memory_mib')}MiB)"))
+
+    run_manifest["run_finished_at"] = datetime.now().astimezone().isoformat()
+    save_run_manifest(run_manifest_path, run_manifest)
 
     counts = run_manifest["counts"]
     print(f"\nDone. success={counts.get('success', 0)} failure={counts.get('failure', 0)} "

@@ -39,13 +39,32 @@ def gpu_is_free(threshold_mib=100):
     """Best-effort check: is the GPU free of *other* material usage right
     now? Returns (is_free: bool, detail: str). Never assume free on error --
     per the protocol, an inability to check means stop and report, not
-    proceed."""
+    proceed.
+
+    "Free" means BOTH: any listed compute process, AND memory.used below
+    threshold_mib (previously this only checked for a nonempty process list
+    and ignored threshold_mib entirely -- a GPU showing e.g. 4000 MiB used
+    with no attributable compute-app entry read as "free", which is wrong).
+    """
     snap = nvidia_smi_snapshot()
     if snap is None:
         return False, "nvidia-smi unavailable -- cannot confirm GPU is free"
+
     procs = snap["processes"]
     if procs:
         return False, f"GPU has running compute processes:\n{procs}"
+
+    try:
+        used_mib = int(snap["gpu_query"].split(",")[2].strip().split()[0])
+    except (IndexError, ValueError):
+        return False, f"could not parse memory.used from nvidia-smi output: {snap['gpu_query']!r}"
+
+    if used_mib >= threshold_mib:
+        return False, (
+            f"GPU memory.used={used_mib}MiB >= threshold_mib={threshold_mib}MiB "
+            f"(no compute-app was individually listed, but this much memory is in "
+            f"use by something):\n{snap['gpu_query']}"
+        )
     return True, snap["gpu_query"]
 
 

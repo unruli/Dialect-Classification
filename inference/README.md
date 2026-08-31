@@ -19,11 +19,17 @@ from its published model card but **has NOT been run** -- no environment was
 built and no live test was performed for it in this export; treat it as
 unvalidated until someone actually runs it.
 
+The G1-A/G1-B/G2-A 95-recording run itself is **still in progress** on
+`levi-compute` as of this commit (87/95 recordings, 0 failures) -- it is
+proven and running correctly, just not yet finished. Check
+`diar_smoke/final/progress_summary.json` on that host for the live count
+rather than trusting a specific number in this file for long.
+
 | System | Implementation status | Should collaborator run it? |
 | --- | --- | --- |
-| G1-A | Exported, proven (95-recording run completed) | No, already run |
-| G1-B | Exported, proven (95-recording run completed) | No, already run |
-| G2-A | Exported, proven (95-recording run completed) | No, already run |
+| G1-A | Exported, proven; 95-recording run **in progress on levi-compute** (87/95 complete, 0 failures, as of 2026-08-31 15:16 MDT -- check `diar_smoke/final/progress_summary.json` for the current count, not this doc) | No, already running elsewhere |
+| G1-B | Exported, proven; same in-progress 95-recording run as G1-A | No, already running elsewhere |
+| G2-A | Exported, proven; same in-progress 95-recording run as G1-A | No, already running elsewhere |
 | G2-B | Not implemented (placeholder directory only) | Third priority |
 | G3-A | Exported; 90-second GPU smoke test **passed** | **First priority** -- full pilot/batch still pending |
 | G3-B | Not implemented | Do not batch yet |

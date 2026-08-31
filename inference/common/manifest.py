@@ -6,6 +6,7 @@ on (dataset, recording_id). No machine-specific paths are hardcoded here --
 both manifest paths are supplied by the caller.
 """
 import csv
+import os
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -29,6 +30,16 @@ def load_selection_manifest(selection_manifest_path: str) -> List[dict]:
         rows = list(csv.DictReader(f))
     if not rows:
         raise ManifestError(f"selection manifest is empty: {selection_manifest_path}")
+    seen = set()
+    dupes = set()
+    for row in rows:
+        key = (row["dataset"], row["recording_id"])
+        (dupes if key in seen else seen).add(key)
+    if dupes:
+        raise ManifestError(
+            f"duplicate (dataset, recording_id) key(s) in selection manifest "
+            f"{selection_manifest_path}: {sorted(dupes)}"
+        )
     return rows
 
 
@@ -85,6 +96,7 @@ def join_manifests(
 
     recordings = []
     missing = []
+    unreadable = []
     for row in selection_rows:
         key = (row["dataset"], row["recording_id"])
         if key not in path_index:
@@ -97,6 +109,9 @@ def join_manifests(
                 f"path manifest row for {key} has no 'audio_path' or "
                 f"'source_audio_path' column"
             )
+        if not os.path.isfile(audio_path):
+            unreadable.append((key, audio_path))
+            continue
         num_speakers_ref = row.get("num_speakers")
         recordings.append(
             Recording(
@@ -113,6 +128,12 @@ def join_manifests(
             f"{len(missing)} selection-manifest ID(s) not found in the local "
             f"path manifest (dataset, recording_id): {missing[:10]}"
             + (" ... (truncated)" if len(missing) > 10 else "")
+        )
+
+    if unreadable:
+        raise ManifestError(
+            f"{len(unreadable)} audio_path value(s) do not exist on disk: "
+            f"{unreadable[:5]}" + (" ... (truncated)" if len(unreadable) > 5 else "")
         )
 
     if expect_full_count and len(recordings) != 95:

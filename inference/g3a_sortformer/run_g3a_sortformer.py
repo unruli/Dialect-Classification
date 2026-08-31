@@ -33,6 +33,27 @@ HIGH_LATENCY_STREAMING_CONFIG = {
 }
 
 
+def resolve_checkpoint_revision(cache_dir, checkpoint_id):
+    """Read back the exact HF Hub snapshot hash that from_pretrained()
+    actually resolved and cached, rather than just recording the mutable
+    "nvidia/..." name. Returns None (never raises) if it can't be found --
+    a missing revision should not fail an otherwise-successful run, but the
+    caller must treat None as "not recorded", not as a real pin."""
+    org_repo = checkpoint_id.replace("/", "--")
+    snapshots_dir = os.path.join(cache_dir, "hub", f"models--{org_repo}", "snapshots")
+    try:
+        entries = [e for e in os.listdir(snapshots_dir) if os.path.isdir(os.path.join(snapshots_dir, e))]
+    except OSError:
+        return None
+    if not entries:
+        return None
+    # Exactly one snapshot is expected per checkpoint in a fresh cache dir;
+    # if more than one exists (e.g. a reused cache across revisions), prefer
+    # the most recently modified rather than guessing.
+    entries.sort(key=lambda e: os.path.getmtime(os.path.join(snapshots_dir, e)), reverse=True)
+    return entries[0]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--wav", required=True)
@@ -59,7 +80,8 @@ def main():
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
 
-    model = SortformerEncLabelModel.from_pretrained("nvidia/diar_streaming_sortformer_4spk-v2.1")
+    checkpoint_id = "nvidia/diar_streaming_sortformer_4spk-v2.1"
+    model = SortformerEncLabelModel.from_pretrained(checkpoint_id)
     model.eval()
     if args.device == "cuda":
         model = model.cuda()
@@ -69,7 +91,13 @@ def main():
     sm = model.sortformer_modules
     for key, value in HIGH_LATENCY_STREAMING_CONFIG.items():
         setattr(sm, key, value)
+    # Validates the five values just set (non-negative ints, spkcache_len
+    # large enough for n_spk, chunk_len/spkcache_update_period > 0) -- raises
+    # TypeError/ValueError on an illegal combination rather than silently
+    # running with a bad streaming config.
+    sm._check_streaming_parameters()
 
+    checkpoint_revision = resolve_checkpoint_revision(args.nemo_cache, checkpoint_id)
     load_elapsed = time.time() - t0
 
     t1 = time.time()
@@ -91,7 +119,8 @@ def main():
     # a "start end speaker_N" string (space-separated seconds + native label).
     result = {"device": args.device, "load_elapsed_sec": round(load_elapsed, 2),
               "infer_elapsed_sec": round(infer_elapsed, 2), "peak_gpu_memory_mib": peak_mem_mib,
-              "raw_output_path": raw_json_path, "streaming_config": HIGH_LATENCY_STREAMING_CONFIG}
+              "raw_output_path": raw_json_path, "streaming_config": HIGH_LATENCY_STREAMING_CONFIG,
+              "checkpoint_id": checkpoint_id, "checkpoint_revision": checkpoint_revision}
 
     try:
         lines = raw_output[0]

@@ -1,56 +1,33 @@
 #!/usr/bin/env python3
 """G4-A: OpenMOSS-Team/MOSS-Transcribe-Diarize (0.9B), unified generative
-transcription+diarization. UNVALIDATED: written from the published model card
-(transformers + trust_remote_code, AutoModelForCausalLM/AutoProcessor,
-deterministic decoding) but has NOT been run -- no environment was built and
-no live test was performed for this system in this export. Do not treat a
-clean --help/syntax check as evidence this runs correctly.
+transcription+diarization. Uses the official `moss_transcribe_diarize`
+helper package (https://github.com/OpenMOSS/MOSS-Transcribe-Diarize),
+verbatim per its published usage example:
+  https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize
 
-Known integration risk (documented for whoever validates this): the model
-card's own setup instructions install a cu128 torch build, which needs a
-newer NVIDIA driver than the 535.309.01-class driver this project's other
-GPU work targets (same class of problem already hit and confirmed for G2-A's
-pyannote.audio 4.x torch>=2.8.0 floor -- see g2a_pyannote/ENVIRONMENT.md and
-docs/diarization/ENVIRONMENT_REPORT.md history). Confirm CUDA compatibility
-on the actual target driver before relying on GPU here.
+STILL UNVALIDATED as of this rewrite: no environment was built and no live
+test has been run for this system. It was rewritten from written-from-scratch
+transformers calls to the project's own build_transcription_messages /
+generate_transcription / parse_transcript helpers because the earlier version
+duplicated logic the official package already provides correctly (prompt
+construction, message formatting) -- rewriting it does not itself validate
+it. Do not treat a clean syntax check or --help as evidence this runs.
 
 Preserves the complete raw generated string before parsing, and detects
 max-token truncation, per MODEL_SELECTION_AND_INFERENCE.md's G4-A settings
-and its "preserve malformed/truncated output as failures" rule.
+and its "preserve malformed/truncated output as failures" rule. Writes both
+the native raw text and a raw RTTM (native speaker labels, not yet anonymized
+-- common/rttm_tools.py anonymizes on normalization, same as every other
+system in this project).
 """
 import argparse
 import json
 import os
-import re
 import sys
 import time
 
 DEFAULT_MAX_NEW_TOKENS = 2048
 LONG_AUDIO_MAX_NEW_TOKENS = 65536  # per model card, for longer recordings
-
-# "[start_time][Sxx]transcribed speech[end_time]" per the model card.
-SEGMENT_RE = re.compile(
-    r"\[(?P<start>[\d.]+)\]\[S(?P<speaker>\d+)\](?P<text>.*?)\[(?P<end>[\d.]+)\]",
-    re.DOTALL,
-)
-
-
-def parse_transcript(raw_text):
-    """Best-effort parse of the '[start][Sxx]text[end]' format into
-    (start, end, speaker_label, text) tuples. Returns (segments, truncated)
-    where truncated is True if the text doesn't end on a well-formed
-    closing tag (a signal of max-new-tokens truncation)."""
-    segments = []
-    for m in SEGMENT_RE.finditer(raw_text):
-        segments.append((
-            float(m.group("start")),
-            float(m.group("end")),
-            f"SPEAKER_{int(m.group('speaker')):02d}",
-            m.group("text").strip(),
-        ))
-    # crude truncation heuristic: raw text doesn't end at a segment boundary
-    truncated = bool(raw_text.strip()) and not raw_text.rstrip().endswith("]")
-    return segments, truncated
 
 
 def main():
@@ -69,53 +46,98 @@ def main():
 
     import torch
     from transformers import AutoModelForCausalLM, AutoProcessor
+    from moss_transcribe_diarize import parse_transcript
+    from moss_transcribe_diarize.inference_utils import (
+        build_transcription_messages,
+        generate_transcription,
+        resolve_device,
+    )
 
     model_id = "OpenMOSS-Team/MOSS-Transcribe-Diarize"
-    device = torch.device(args.device if (args.device == "cpu" or torch.cuda.is_available()) else "cpu")
+    device = resolve_device(args.device if args.device != "cuda" else "auto")
     dtype = torch.bfloat16 if device.type == "cuda" else torch.float32
 
+    if args.device == "cuda" and not torch.cuda.is_available():
+        print("ERROR: --device cuda requested but torch.cuda.is_available() is False", file=sys.stderr)
+        sys.exit(1)
+
     t0 = time.time()
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+
     model = AutoModelForCausalLM.from_pretrained(
-        model_id, trust_remote_code=True, dtype="auto",
+        model_id, trust_remote_code=True, dtype="auto", attn_implementation="sdpa",
     ).to(dtype=dtype).to(device).eval()
     processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
     load_elapsed = time.time() - t0
 
-    # Default timestamped speaker-diarization prompt per the model card; no
-    # transcript hotwords, speaker names, or dataset-specific prompting.
-    inputs = processor(audio=[args.wav], return_tensors="pt").to(device)
-
+    # Default timestamped speaker-diarization prompt via the official helper
+    # -- no transcript hotwords, speaker names, or dataset-specific prompting.
     t1 = time.time()
-    with torch.no_grad():
-        generated = model.generate(
-            **inputs,
-            do_sample=False,
-            temperature=0.0,
-            max_new_tokens=args.max_new_tokens,
-        )
-    raw_text = processor.batch_decode(generated, skip_special_tokens=True)[0]
+    messages = build_transcription_messages(args.wav)
+    generated = generate_transcription(
+        model, processor, messages,
+        max_new_tokens=args.max_new_tokens,
+        do_sample=False,
+        device=device,
+        dtype=dtype,
+    )
+    raw_text = generated["text"]
     infer_elapsed = time.time() - t1
 
-    raw_path = os.path.join(args.out_dir, f"{uri}.g4a_moss.raw.txt")
-    with open(raw_path, "w") as f:
+    peak_mem_mib = None
+    if torch.cuda.is_available():
+        peak_mem_mib = round(torch.cuda.max_memory_allocated() / (1024 * 1024), 1)
+
+    raw_text_path = os.path.join(args.out_dir, f"{uri}.g4a_moss.raw.txt")
+    with open(raw_text_path, "w") as f:
         f.write(raw_text)
 
-    segments, truncated = parse_transcript(raw_text)
-
     result = {
-        "ok": len(segments) > 0 and not truncated,
         "device": str(device),
         "load_elapsed_sec": round(load_elapsed, 2),
         "infer_elapsed_sec": round(infer_elapsed, 2),
-        "raw_output_path": raw_path,
-        "n_segments_parsed": len(segments),
-        "truncated": truncated,
+        "peak_gpu_memory_mib": peak_mem_mib,
+        "raw_text_path": raw_text_path,
+        "checkpoint_id": model_id,
         "max_new_tokens": args.max_new_tokens,
     }
-    if truncated:
-        result["error"] = "output appears truncated at max_new_tokens (malformed, preserved as failure per protocol)"
-    if not segments:
-        result["error"] = result.get("error") or "no [start][Sxx]text[end] segments parsed from raw output"
+
+    try:
+        segments = list(parse_transcript(raw_text))
+    except Exception as e:
+        segments = []
+        result["parse_error"] = f"{type(e).__name__}: {e}"
+
+    # Truncation heuristic: max_new_tokens reached without the generation
+    # reaching a natural close (raw text doesn't end on a segment boundary).
+    truncated = bool(raw_text.strip()) and not raw_text.rstrip().endswith("]")
+    result["truncated"] = truncated
+
+    if truncated or not segments:
+        result["ok"] = False
+        result["error"] = (
+            "output appears truncated at max_new_tokens (malformed, preserved as failure per protocol)"
+            if truncated else
+            "no segments parsed from raw output " + (result.get("parse_error") or "")
+        )
+        if args.result_json:
+            with open(args.result_json, "w") as f:
+                json.dump(result, f)
+        print(json.dumps(result))
+        return
+
+    raw_rttm_path = os.path.join(args.out_dir, f"{uri}.g4a_moss.raw.rttm")
+    with open(raw_rttm_path, "w") as f:
+        for seg in segments:
+            duration = seg.end - seg.start
+            if duration <= 0:
+                continue  # preserved in raw_text_path; not written as an invalid RTTM segment
+            f.write(f"SPEAKER {uri} 1 {seg.start:.3f} {duration:.3f} <NA> <NA> {seg.speaker} <NA> <NA>\n")
+
+    result["ok"] = True
+    result["raw_rttm_path"] = raw_rttm_path
+    result["n_segments_parsed"] = len(segments)
 
     if args.result_json:
         with open(args.result_json, "w") as f:
