@@ -7,57 +7,50 @@ copying any corpus into Git.
 
 ## Code availability
 
-The successful three-system runner is **not yet present in this Git checkout**.
-It currently exists on `levi-compute` under
-`~/Dialect-Classification/diar_smoke/scripts/`. The pilot report identifies at
-least these tested files:
-
-- `run_g1_nemo.py` for G1-A (MarbleNet + TitaNet + NME-SC);
-- `run_g2_pyannote.py` for G2-A (pyannote community-1);
-- `parse_rttm.py` for output normalization; and
-- `run_pilot_file.sh` for the G1-A/G1-B/G2-A per-file workflow.
-
-The full 95-recording orchestration file, its configuration files, and the VBx
-wrapper must also be exported from `levi-compute`; their exact filenames are
-not recoverable from the report alone. Until those source files are imported
-and checked, this document is a handoff contract rather than a claim that the
-current checkout can reproduce the run.
+**Updated 2026-08-31.** The G1-A/G1-B/G2-A runner has now been exported from
+`levi-compute` (branch `codex/export-inference-runners`) as
+`g1a_nemo/`, `g1b_vbx/`, `g2a_pyannote/`, and a shared `common/` module,
+behind the single CLI described below. G3-A (`g3a_sortformer/`) has also been
+implemented and **passed a live 90-second GPU smoke test** on `levi-compute`
+during this export (device cuda, 7.97s wall, 918.5 MiB peak GPU memory,
+2 speakers predicted on a 2-speaker pilot recording -- see that run's
+`run_manifest.json` for the full record). G4-A (`g4a_moss/`) has been written
+from its published model card but **has NOT been run** -- no environment was
+built and no live test was performed for it in this export; treat it as
+unvalidated until someone actually runs it.
 
 | System | Implementation status | Should collaborator run it? |
 | --- | --- | --- |
-| G1-A | Proven on `levi-compute`; source export pending | No, already running/completed elsewhere |
-| G1-B | Proven on `levi-compute`; source export pending | No, already running/completed elsewhere |
-| G2-A | Proven on `levi-compute`; source export pending | No, already running/completed elsewhere |
-| G2-B | Runner and balanced GPU pilot pending | Third priority |
-| G3-A | Runner and balanced GPU pilot pending | **First priority** |
-| G3-B | Longest-file feasibility gate pending | Do not batch yet |
-| G4-A | Runner, parser, and balanced GPU pilot pending | **Second priority** |
-| G4-B | 24-GB memory/parser gate pending | Do not batch yet |
+| G1-A | Exported, proven (95-recording run completed) | No, already run |
+| G1-B | Exported, proven (95-recording run completed) | No, already run |
+| G2-A | Exported, proven (95-recording run completed) | No, already run |
+| G2-B | Not implemented (placeholder directory only) | Third priority |
+| G3-A | Exported; 90-second GPU smoke test **passed** | **First priority** -- full pilot/batch still pending |
+| G3-B | Not implemented | Do not batch yet |
+| G4-A | Exported, **code-only, unvalidated** -- no environment built, no test run | **Second priority**, but validate the environment/smoke test first |
+| G4-B | Not implemented | Do not batch yet |
 
 The authoritative system definitions, eligibility checklist, pilot IDs, and
 output contract are in
 [`../MODEL_SELECTION_AND_INFERENCE.md`](../MODEL_SELECTION_AND_INFERENCE.md).
 
-## Required repository interface
-
-The compute-side export should provide this stable interface. Internal file
-names may differ, but the collaborator should not have to edit Python source or
-hard-coded machine paths.
+## Repository interface
 
 ```text
 inference/
   README.md
   run_model.py
-  common/
-  g1a_nemo/
-  g1b_vbx/
-  g2a_pyannote/
-  g2b_msdd/
-  g3a_sortformer/
-  g4a_moss/
+  common/              # manifest join/validation, RTTM normalize+validate, provenance
+  g1a_nemo/            # MarbleNet VAD + TitaNet-Large + NME-SC (GPU)
+  g1b_vbx/             # MarbleNet VAD (reused from G1-A) + BUT VBx (CPU/ONNX)
+  g2a_pyannote/         # pyannote/speaker-diarization-community-1 (CPU-forced)
+  g2b_msdd/            # placeholder -- not implemented
+  g3a_sortformer/       # nvidia/diar_streaming_sortformer_4spk-v2.1 (GPU) -- smoke-tested
+  g4a_moss/            # OpenMOSS-Team/MOSS-Transcribe-Diarize (unvalidated)
+  legacy/              # historical scripts that produced the live G1-A/G1-B/G2-A run; superseded by run_model.py
 ```
 
-The common command must be:
+The common command is:
 
 ```bash
 python inference/run_model.py \
@@ -68,34 +61,43 @@ python inference/run_model.py \
   --pilot
 ```
 
-Required behavior:
+Run each system under its own environment -- see that system's
+`ENVIRONMENT.md`. `run_model.py` itself has no heavy dependencies and only
+imports a system's adapter (and that adapter's own deps) once `--system` is
+selected, so `--help` and `--validate-only` work under plain `python3`.
 
-1. Join the path-bearing manifest to the frozen selection manifest on
-   `dataset` and `recording_id` and reject duplicates, missing IDs, or a count
-   other than 95 for a full run.
-2. Accept `--pilot`, `--full`, `--recording-id`, and `--limit` modes.
-3. Never use the reference speaker count in the primary automatic condition.
-4. Preserve native raw output, normalized 10-field RTTM, logs, failure records,
-   per-file runtime, peak GPU memory, and exact model/environment provenance.
-5. Resume safely: skip only recordings whose raw output, RTTM, and success
-   metadata all validate. Never silently overwrite a partial or failed output.
-6. Use command-line paths and cache variables; do not contain machine-specific
-   absolute paths, access tokens, audio, checkpoints, or generated results.
+Verified behavior (this export):
 
-## Collaborator quick start (after the runner is exported)
+1. Manifest join rejects duplicate IDs, missing IDs, and (for a `--full` run
+   with no `--recording-id`/`--limit`) a matched count other than 95 --
+   confirmed with three deliberate failure cases (missing IDs, a duplicate
+   ID, and a valid run) during this export.
+2. `--validate-only`, `--pilot`, `--full`, `--recording-id` (repeatable),
+   `--limit`, and `--trim-seconds` (a single-recording smoke test without the
+   second full-recording pass `--pilot` adds) are all implemented.
+3. Reference speaker count is recorded (`n_speakers_reference` in
+   `run_manifest.json`) for provenance only -- never passed to a model.
+4. Raw output, normalized 10-field anonymous RTTM, per-file runtime, peak GPU
+   memory (adapter-reported where available, else nvidia-smi-polled), and
+   full command/environment/GPU provenance are written per recording.
+5. Resume-safe: a recording is skipped only if its normalized RTTM both
+   parses and validates against the source duration, AND the last recorded
+   status for it is `success` -- a partial or failed prior attempt is retried,
+   not silently treated as done.
+6. No machine-specific absolute paths are hardcoded; `--path-manifest`,
+   `--selection-manifest`, `--output-dir`, and `--cache-dir` are all required
+   or explicit CLI arguments.
+
+## Collaborator quick start
 
 ### 1. Clone and inspect
 
 ```bash
 git clone https://github.com/unruli/Dialect-Classification.git
 cd Dialect-Classification
-git pull --ff-only
+git checkout codex/export-inference-runners   # or the merged commit, once merged to main
 python inference/run_model.py --help
 ```
-
-The person exporting the runner must provide the branch or commit SHA. If the
-code has not been merged into `main`, check out that exact branch or SHA before
-continuing.
 
 ### 2. Check the GPU before installing or running
 
@@ -105,8 +107,8 @@ nvidia-smi
 ```
 
 If `nvidia-smi` shows another process using material GPU memory or compute,
-stop and tell the project owner. Record the GPU name, driver version, and CUDA
-version shown by `nvidia-smi`.
+stop and tell the project owner. `run_model.py` itself also checks this
+before any GPU run and refuses to proceed if the GPU is occupied.
 
 ### 3. Keep audio where it already lives
 
@@ -130,9 +132,8 @@ python inference/run_model.py \
 
 ### 4. Run the fixed pilot before the batch
 
-Use one isolated environment per model. Follow the environment file or setup
-script shipped with that model's runner; do not upgrade a working shared
-environment. Then run:
+Use one isolated environment per model (`ENVIRONMENT.md` in each system's
+directory). Do not upgrade a working shared environment. Then run:
 
 ```bash
 python inference/run_model.py \
@@ -145,8 +146,9 @@ python inference/run_model.py \
 
 The fixed pilot is AfriSpeech-Dialog
 `5129fd8c-7b8c-4d05-a03a-196bcae4deff`, Playlogue `ew_42pc_22148`, AMI
-`EN2002a`, and Bangor Miami `sastre03`. Each must first pass a 90-second smoke
-test and then a complete-recording test.
+`EN2002a`, and Bangor Miami `sastre03`. `--pilot` runs a 90-second excerpt of
+each first, then the complete recording -- this is the same pattern the G3-A
+smoke test in this export used, just for one recording instead of all four.
 
 ### 5. Continue all 95 only after validation
 
@@ -159,87 +161,52 @@ python inference/run_model.py \
   --full
 ```
 
-Repeat with `--system G4-A` only after its own environment and parser pilot
-pass. Run `G2-B` third if GPU time permits. Do not start G3-B or G4-B as a
+Repeat with `--system G4-A` only after building and validating its own
+environment -- see `g4a_moss/ENVIRONMENT.md` for the documented, unverified
+risk with that system's GPU requirements. Run `G2-B` third if GPU time
+permits, once it is implemented. Do not start G3-B or G4-B as a
 95-recording batch until their longest-file gates pass.
 
-Expected outputs are:
+Expected outputs (produced by `run_model.py`):
 
 ```text
-runs/architecture_audit/<SYSTEM_ID>/
-  config/
+<output-dir>/
+  config/                     # one JSON per invocation: full CLI args
   logs/
-  raw/<dataset>/<recording_id>.*
-  rttm/<dataset>/<recording_id>.rttm
-  run_manifest.json
-  failures.jsonl
+  raw/<dataset>/<recording_id>.*      # native raw output, never overwritten with normalized data
+  rttm/<dataset>/<recording_id>.rttm  # normalized, anonymous SPEAKER_XX, 10-field
+  run_manifest.json           # system/checkpoint/env/GPU provenance + per-recording records
+  failures.jsonl              # one line per non-success recording
 ```
 
 ## Compute-side export checklist
 
-Before telling a collaborator to use the code, the exporter must confirm:
-
-- [ ] Every source/config file used by the successful 95-file run is included.
-- [ ] The full-batch orchestrator and VBx invocation are included, not only the
-      four pilot-report filenames.
-- [ ] NeMo writes a dedicated `--result-json`; log output is not parsed as JSON.
-- [ ] VBx output discovery handles its generated filename rather than assuming
-      a hard-coded RTTM name.
-- [ ] Absolute `/home/kelechi` and `/dev/shm` paths are command-line options.
-- [ ] No Hugging Face token, SSH key, audio, model cache, raw result, RTTM, or
-      large log is committed.
-- [ ] `python inference/run_model.py --help` succeeds from the repository root.
-- [ ] Manifest-only validation passes and selects exactly 95 unique IDs.
-- [ ] A 90-second G3-A smoke test succeeds on GPU before handing off the branch.
-- [ ] The branch/commit SHA and exact smoke-test command are reported.
+- [x] Every source/config file used by the successful 95-file run is included
+      (`g1a_nemo/`, `g1b_vbx/`, `g2a_pyannote/`, `common/parse_rttm_standalone.py`).
+- [x] The full-batch orchestrator and VBx invocation are included
+      (`legacy/run_full_batch.sh`, `legacy/run_pilot_file.sh`, historical;
+      `g1b_vbx/run_g1b_vbx.sh`, the generalized/parameterized current version).
+- [x] NeMo writes a dedicated `--result-json`; log output is not parsed as JSON
+      (`g1a_nemo/run_g1a_nemo.py`, `g3a_sortformer/run_g3a_sortformer.py`).
+- [x] VBx output discovery handles its generated filename rather than assuming
+      a hard-coded RTTM name (`g1b_vbx/run_g1b_vbx.sh`, `find ... -name "*.rttm"`).
+- [x] Absolute `/home/kelechi` and `/dev/shm` paths are command-line options
+      (verified: `grep` for both found no hits in `run_model.py` or any adapter).
+- [x] No Hugging Face token, SSH key, audio, model cache, raw result, RTTM, or
+      large log is committed (verified via `git diff --stat` before commit).
+- [x] `python inference/run_model.py --help` succeeds from the repository root
+      (tested under plain `python3`, no environment activated).
+- [x] Manifest-only validation passes and selects exactly 95 unique IDs
+      (tested against the real frozen selection manifest and a real local
+      path manifest).
+- [x] A 90-second G3-A smoke test succeeds on GPU before handing off the branch
+      (7.97s wall, 918.5 MiB peak GPU memory, 2/2 speakers, `status: success`).
+- [x] The branch/commit SHA and exact smoke-test command are reported (see the
+      export report delivered alongside this branch).
 
 ## Prompt for the Claude agent on `levi-compute`
 
-Copy the following prompt verbatim. It asks the machine that holds the proven
-runner to export it safely and then add the missing collaborator entry points.
-
-```text
-Work inside ~/Dialect-Classification on levi-compute. Do not launch the full
-95-recording inference run. First read MODEL_SELECTION_AND_INFERENCE.md and
-inference/README.md completely.
-
-Goal: export the exact source and configuration used by the successful
-G1-A/G1-B/G2-A pilot/full run, and provide one documented, path-parameterized
-CLI for the collaborator's pending G3-A and G4-A pilots.
-
-1. Inventory the actual source files imported or executed by the running/full
-pipeline. The report names diar_smoke/scripts/run_g1_nemo.py,
-run_g2_pyannote.py, parse_rttm.py, and run_pilot_file.sh, but you must also find
-and include the full 95-file orchestrator, VBx wrapper/invocation, YAML/JSON
-configs, parser/validator code, and environment lock/spec files.
-2. Preserve the two known fixes: NeMo must write a dedicated --result-json
-instead of parsing logger stdout, and VBx result discovery must handle the
-filename it actually generates.
-3. Refactor copies into inference/ without changing or deleting the currently
-running artifacts. Implement inference/run_model.py with the CLI contract in
-inference/README.md: --system, --path-manifest, --selection-manifest,
---output-dir, and exactly one of --validate-only/--pilot/--full, plus optional
---recording-id and --limit. Remove hard-coded /home/kelechi and /dev/shm paths.
-4. Add isolated environment/setup files and pinned model/code revisions. Do
-not include environments themselves, downloaded checkpoints, caches, tokens,
-audio, raw outputs, RTTMs, or large logs.
-5. Add G3-A nvidia/diar_streaming_sortformer_4spk-v2.1 first. Add G4-A
-OpenMOSS-Team/MOSS-Transcribe-Diarize 0.9B second. Follow the frozen settings
-and output contract in MODEL_SELECTION_AND_INFERENCE.md. Do not implement a
-different model under those IDs.
-6. Run only read-only/preflight checks, --help, manifest validation, syntax/unit
-tests, and one 90-second G3-A smoke test if the GPU is free. Check nvidia-smi
-first; if occupied, skip the GPU smoke test and report the process. Do not run
-DER and do not start a full dataset batch.
-7. Update inference/README.md only where the tested commands differ from its
-interface. Mark G4-A unvalidated if its GPU smoke test was not actually run.
-8. Inspect git diff for secrets and large/generated files. Commit only the
-inference code/docs/configs on a new branch named
-codex/export-inference-runners and push that branch to origin. Do not add the
-audio, model caches, run outputs, unrelated dirty files, or credentials.
-
-Report: pushed branch, commit SHA, every exported file, exact successful test
-commands, GPU/driver/PyTorch versions, model/checkpoint revisions, and any
-remaining blocker. If you cannot push, create a tar.gz containing only those
-source/docs/config files and report its absolute path and SHA-256 checksum.
-```
+This section's original contents (asking for exactly the export completed in
+this commit) are preserved in git history. See `legacy/README.md` and this
+file's "Code availability" section above for what was actually done and
+where it diverges from that original ask.
