@@ -27,14 +27,28 @@ def main():
 
     os.environ["NEMO_CACHE_DIR"] = args.nemo_cache
     os.makedirs(args.out_dir, exist_ok=True)
-    work_dir = os.path.join(args.out_dir, "_work")
+
+    uri = os.path.splitext(os.path.basename(args.wav))[0]
+
+    # BUG FIX (2026-08-31): work_dir used to be a single fixed "_work" under
+    # --out-dir, shared across every recording in a batch that reuses the
+    # same --out-dir. Nothing ever cleared it between recordings, so
+    # NeMo's pred_rttms/ directory accumulated every prior recording's
+    # output, and the old `glob(...)[0]` picked whichever file happened to
+    # sort first -- frequently NOT the current recording. Confirmed in
+    # production: 34 different Playlogue recordings' "raw" RTTMs all ended
+    # at the identical 1809.4s, 14 AfriSpeech recordings at 575.0s -- i.e.
+    # other recordings' output, not this file's. Keying work_dir on `uri`
+    # makes cross-recording collision structurally impossible, independent
+    # of what glob() returns.
+    work_dir = os.path.join(args.out_dir, "_work", uri)
+    if os.path.isdir(work_dir):
+        shutil.rmtree(work_dir)
     os.makedirs(work_dir, exist_ok=True)
 
     import torch
     from omegaconf import OmegaConf
     from nemo.collections.asr.models import ClusteringDiarizer
-
-    uri = os.path.splitext(os.path.basename(args.wav))[0]
 
     if args.device == "cuda" and not torch.cuda.is_available():
         print("ERROR: --device cuda requested but torch.cuda.is_available() is False", file=sys.stderr)
@@ -108,10 +122,20 @@ def main():
     diarizer.diarize(batch_size=64)
     elapsed = time.time() - t0
 
-    raw_rttm_candidates = glob.glob(os.path.join(work_dir, "pred_rttms", "*.rttm"))
+    # Exact-match on this recording's own uri, not just "*.rttm" -- defense
+    # in depth alongside the now-per-uri work_dir above, in case NeMo's
+    # pred_rttms/ ever ends up with more than one file in it for any reason.
+    raw_rttm_candidates = glob.glob(os.path.join(work_dir, "pred_rttms", f"{uri}.rttm"))
+    if not raw_rttm_candidates:
+        raw_rttm_candidates = glob.glob(os.path.join(work_dir, "pred_rttms", "*.rttm"))
+        print(f"WARNING: no exact {uri}.rttm match; falling back to *.rttm glob "
+              f"(found {len(raw_rttm_candidates)}: {raw_rttm_candidates})", file=sys.stderr)
     if not raw_rttm_candidates:
         print("ERROR: no RTTM produced by ClusteringDiarizer", file=sys.stderr)
         sys.exit(1)
+    if len(raw_rttm_candidates) > 1:
+        print(f"WARNING: {len(raw_rttm_candidates)} RTTM candidates found for {uri}, "
+              f"using the first: {raw_rttm_candidates}", file=sys.stderr)
     raw_rttm = raw_rttm_candidates[0]
     raw_out = os.path.join(args.out_dir, f"{uri}.g1_nemo.raw.rttm")
     shutil.copy(raw_rttm, raw_out)
