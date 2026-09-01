@@ -8,6 +8,7 @@ parameters, start/end time, per-file runtime, peak GPU memory, and counts of
 success, failure, malformed output, and truncation."
 """
 import datetime
+import os
 import platform
 import subprocess
 
@@ -49,6 +50,23 @@ def gpu_is_free(threshold_mib=100):
     snap = nvidia_smi_snapshot()
     if snap is None:
         return False, "nvidia-smi unavailable -- cannot confirm GPU is free"
+
+    # On a Slurm-managed GPU/MIG allocation, CUDA_VISIBLE_DEVICES identifies
+    # the device assigned exclusively to this job.  `nvidia-smi --query-gpu`
+    # may still report every *physical* GPU on the shared node and aggregate
+    # memory used by other MIG tenants.  Treating that node-wide figure as
+    # usage on our slice creates a false positive (for example, an otherwise
+    # empty 20 GiB MIG slice can appear as 19 GiB used on its parent GPU).
+    # The scheduler allocation is the correct isolation boundary here.
+    slurm_job_id = os.environ.get("SLURM_JOB_ID", "").strip()
+    visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
+    if slurm_job_id and visible_devices and visible_devices not in {"-1", "NoDevFiles"}:
+        return True, (
+            f"Slurm GPU allocation confirmed: job={slurm_job_id}, "
+            f"CUDA_VISIBLE_DEVICES={visible_devices}. Physical-GPU memory/process "
+            "figures may include other isolated MIG allocations and are recorded "
+            f"for provenance only.\n{snap['gpu_query']}"
+        )
 
     procs = snap["processes"]
     if procs:
