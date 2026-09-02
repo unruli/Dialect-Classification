@@ -45,6 +45,7 @@ def main():
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     parser.add_argument("--max-new-tokens", type=int, default=DEFAULT_MAX_NEW_TOKENS)
     parser.add_argument("--tokenizer-chunk-size", type=int, default=DEFAULT_TOKENIZER_CHUNK_SIZE)
+    parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--result-json", default=None)
     args = parser.parse_args()
 
@@ -57,6 +58,10 @@ def main():
 
     import torch
     from transformers import AutoProcessor, VibeVoiceAsrForConditionalGeneration
+
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
 
     if args.device == "cuda" and not torch.cuda.is_available():
         print("ERROR: --device cuda requested but torch.cuda.is_available() is False", file=sys.stderr)
@@ -115,7 +120,6 @@ def main():
     infer_elapsed = time.time() - infer_started
 
     raw_text = processor.decode(generated_ids)[0]
-    parsed = processor.decode(generated_ids, return_format="parsed")[0]
     generated_tokens = int(generated_ids.shape[-1])
     last_token = int(generated_ids[0, -1].item()) if generated_tokens else None
     hit_limit = generated_tokens >= args.max_new_tokens
@@ -126,8 +130,6 @@ def main():
     parsed_path = os.path.join(args.out_dir, f"{uri}.g4b_vibevoice.parsed.json")
     with open(raw_text_path, "w") as handle:
         handle.write(raw_text)
-    with open(parsed_path, "w") as handle:
-        json.dump(parsed, handle, indent=2, default=str)
 
     peak_mem_mib = None
     if torch.cuda.is_available():
@@ -146,11 +148,31 @@ def main():
         "max_new_tokens": args.max_new_tokens,
         "generated_tokens": generated_tokens,
         "tokenizer_chunk_size": args.tokenizer_chunk_size,
+        "seed": args.seed,
         "truncated": truncated,
     }
 
     if truncated:
         result.update(ok=False, error="generation reached max_new_tokens without EOS")
+        _write_result(args.result_json, result)
+        return
+
+    # Preserve the native generation before invoking the library parser. The
+    # released parser currently lets JSONDecodeError escape for malformed
+    # model output, even though its documentation says parsing failures return
+    # the original string. Such output remains a failed smoke by protocol.
+    try:
+        parsed = processor.decode(generated_ids, return_format="parsed")[0]
+        parsed_artifact = parsed
+    except Exception as exc:
+        parsed = None
+        result["parse_error"] = f"{type(exc).__name__}: {exc}"
+        parsed_artifact = {"parse_error": result["parse_error"]}
+    with open(parsed_path, "w") as handle:
+        json.dump(parsed_artifact, handle, indent=2, default=str)
+
+    if parsed is None:
+        result.update(ok=False, error=f"processor parser failed: {result['parse_error']}")
         _write_result(args.result_json, result)
         return
     if not isinstance(parsed, list) or not parsed:

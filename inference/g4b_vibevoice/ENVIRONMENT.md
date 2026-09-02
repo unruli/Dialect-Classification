@@ -16,11 +16,16 @@ The primary condition uses:
 
 - `microsoft/VibeVoice-ASR-HF`, BF16, eager attention;
 - `do_sample=False` and no contextual prompt or hotwords;
+- seed 0 for the acoustic tokenizer's released stochastic latent-noise step;
 - `acoustic_tokenizer_chunk_size=64000` (a multiple of the released
   3200-sample hop; exposed as `--tokenizer-chunk-size` by this runner);
 - batch size 1 and no oracle speaker count;
 - raw native text plus the processor's parsed output retained before RTTM
   normalization.
+
+Raw text is written before parsing. If the released processor raises while
+decoding malformed JSON-like model output, the parser error is retained and
+the recording fails the smoke gate without attempting output repair.
 
 Eager attention is intentional: Transformers 5.6 rejects SDPA for the nested
 `VibeVoiceAcousticTokenizerEncoderModel` and identifies eager attention as the
