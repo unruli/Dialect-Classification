@@ -151,7 +151,7 @@ the failure and stop; do not introduce a clustering-based chunk stitcher.
 **G4-B:** use `microsoft/VibeVoice-ASR-HF`, Transformers 5.3 or the pinned
 compatible release, deterministic generation, and no contextual hotwords.
 Save raw JSON-like output and the library's parsed output. A smaller
-`tokenizer_chunk_size` is permitted for memory because the released model
+`acoustic_tokenizer_chunk_size` is permitted for memory because the released model
 carries convolution state across those chunks; log the exact value.
 
 ### 5. Required output contract

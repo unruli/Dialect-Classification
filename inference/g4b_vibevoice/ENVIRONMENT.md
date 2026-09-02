@@ -16,7 +16,8 @@ The primary condition uses:
 
 - `microsoft/VibeVoice-ASR-HF`, BF16, eager attention;
 - `do_sample=False` and no contextual prompt or hotwords;
-- `tokenizer_chunk_size=64000` (a multiple of the released 3200-sample hop);
+- `acoustic_tokenizer_chunk_size=64000` (a multiple of the released
+  3200-sample hop; exposed as `--tokenizer-chunk-size` by this runner);
 - batch size 1 and no oracle speaker count;
 - raw native text plus the processor's parsed output retained before RTTM
   normalization.

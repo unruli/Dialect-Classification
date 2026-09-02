@@ -3,7 +3,7 @@
 timestamping, and diarization.
 
 Uses the model card's native Transformers API, deterministic greedy decoding,
-no prompt/hotwords, and a 64,000-sample tokenizer chunk (20 acoustic-token
+no prompt/hotwords, and a 64,000-sample acoustic-tokenizer chunk (20 acoustic-token
 hops) to reduce peak memory while retaining the released convolution state.
 The complete native text and parsed JSON-like output are archived before RTTM
 conversion. Malformed or maximum-token-truncated output is a failed smoke.
@@ -109,7 +109,7 @@ def main():
             **inputs,
             max_new_tokens=args.max_new_tokens,
             do_sample=False,
-            tokenizer_chunk_size=args.tokenizer_chunk_size,
+            acoustic_tokenizer_chunk_size=args.tokenizer_chunk_size,
         )
     generated_ids = output_ids[:, inputs["input_ids"].shape[1]:]
     infer_elapsed = time.time() - infer_started
