@@ -179,6 +179,11 @@ def process_one(adapter, system_id, rec, output_dir, cache_dir, config, device,
     if not result.get("ok"):
         record["status"] = "failure"
         record["error"] = result.get("error", "unknown failure")
+        # Adapter results have already crossed the JSON subprocess boundary,
+        # so their provenance fields are serializable. Keep them for failed
+        # generations too (raw/parsed artifact paths, checkpoint revision,
+        # token counts, truncation flags, device placement, seed, etc.).
+        record.update({k: v for k, v in result.items() if k not in ("ok", "error")})
         return record, None
 
     raw_rttm_path = result.get("raw_rttm_path")
