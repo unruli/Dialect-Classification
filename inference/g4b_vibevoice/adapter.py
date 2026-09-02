@@ -10,7 +10,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def run_one(wav_path, raw_out_dir, uri, cache_dir, device="cuda",
-            max_new_tokens=None, **_):
+            max_new_tokens=None, g4b_acoustic_latent_mode="sample",
+            g4b_tokenizer_chunk_size=None, **_):
     runner = os.path.join(HERE, "run_g4b_vibevoice.py")
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tf:
         result_json = tf.name
@@ -20,9 +21,12 @@ def run_one(wav_path, raw_out_dir, uri, cache_dir, device="cuda",
                    "--out-dir", raw_out_dir,
                    "--model-cache", cache_dir,
                    "--device", device,
+                   "--acoustic-latent-mode", g4b_acoustic_latent_mode,
                    "--result-json", result_json]
         if max_new_tokens is not None:
             command.extend(["--max-new-tokens", str(max_new_tokens)])
+        if g4b_tokenizer_chunk_size is not None:
+            command.extend(["--tokenizer-chunk-size", str(g4b_tokenizer_chunk_size)])
         proc = subprocess.run(
             command,
             capture_output=True, text=True, timeout=3600,

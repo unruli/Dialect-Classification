@@ -157,6 +157,8 @@ def process_one(adapter, system_id, rec, output_dir, cache_dir, config, device,
         device=device, vad_lab_path=vad_lab_lookup.get((dataset, recording_id)),
         vbx_repo_dir=vbx_repo_dir, work_dir=os.path.join(work_dir, f"{dataset}__{recording_id}"),
         hf_home=hf_home, max_new_tokens=config.get("max_new_tokens"),
+        g4b_acoustic_latent_mode=config.get("g4b_acoustic_latent_mode", "sample"),
+        g4b_tokenizer_chunk_size=config.get("g4b_tokenizer_chunk_size"),
     )
 
     sampler = GPUMemSampler()
@@ -232,6 +234,10 @@ def main():
     ap.add_argument("--max-new-tokens", type=int, default=None,
                     help="optional generation ceiling for generative systems (G4-A/G4-B); "
                          "use a smaller explicit value for bounded smoke tests")
+    ap.add_argument("--g4b-acoustic-latent-mode", choices=("sample", "mean"), default="sample",
+                    help="G4-B only: released stochastic acoustic VAE or deterministic mean latent")
+    ap.add_argument("--g4b-tokenizer-chunk-size", type=int, default=None,
+                    help="G4-B only: tokenizer chunk size in 24-kHz samples (multiple of 3200)")
     ap.add_argument("--cache-dir", default=None, help="checkpoint/model cache dir (default: <output-dir>/cache)")
     ap.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     ap.add_argument("--vbx-repo-dir", default=None, help="G1-B only: path to a cloned BUTSpeechFIT/VBx checkout")

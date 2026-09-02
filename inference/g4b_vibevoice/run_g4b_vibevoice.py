@@ -5,6 +5,8 @@ timestamping, and diarization.
 Uses the model card's native Transformers API, deterministic greedy decoding,
 no prompt/hotwords, and a 64,000-sample acoustic-tokenizer chunk (20 acoustic-token
 hops) to reduce peak memory while retaining the released convolution state.
+The optional mean-latent mode disables the acoustic VAE noise, matching the
+official VibeVoice vLLM implementation's ``VIBEVOICE_USE_MEAN=1`` behavior.
 The complete native text and parsed JSON-like output are archived before RTTM
 conversion. Malformed or maximum-token-truncated output is a failed smoke.
 """
@@ -45,6 +47,12 @@ def main():
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     parser.add_argument("--max-new-tokens", type=int, default=DEFAULT_MAX_NEW_TOKENS)
     parser.add_argument("--tokenizer-chunk-size", type=int, default=DEFAULT_TOKENIZER_CHUNK_SIZE)
+    parser.add_argument(
+        "--acoustic-latent-mode",
+        choices=("sample", "mean"),
+        default="sample",
+        help="sample the released acoustic VAE, or use its deterministic mean latent",
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--result-json", default=None)
     args = parser.parse_args()
@@ -58,10 +66,6 @@ def main():
 
     import torch
     from transformers import AutoProcessor, VibeVoiceAsrForConditionalGeneration
-
-    torch.manual_seed(args.seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(args.seed)
 
     if args.device == "cuda" and not torch.cuda.is_available():
         print("ERROR: --device cuda requested but torch.cuda.is_available() is False", file=sys.stderr)
@@ -92,6 +96,17 @@ def main():
     model.eval()
     load_elapsed = time.time() - load_started
 
+    acoustic_config = model.config.acoustic_tokenizer_encoder_config
+    original_vae_std = float(acoustic_config.vae_std)
+    if args.acoustic_latent_mode == "mean":
+        # The Transformers composite ASR model does not expose the acoustic
+        # tokenizer's public sample=False switch. Its get_audio_features()
+        # multiplies both random terms by this configured standard deviation,
+        # so setting it to zero is exactly the mean-latent path. Microsoft
+        # exposes the same inference choice as VIBEVOICE_USE_MEAN=1 in its
+        # official vLLM implementation.
+        acoustic_config.vae_std = 0.0
+
     device_map = getattr(model, "hf_device_map", None)
     if args.device == "cuda" and device_map:
         placements = {str(value) for value in device_map.values()}
@@ -109,6 +124,13 @@ def main():
 
     infer_started = time.time()
     inputs = processor.apply_transcription_request(audio=args.wav).to(model_device, dtype)
+    # Loading a large checkpoint can consume framework RNG state. Reset here,
+    # immediately before the first forward pass where the acoustic tokenizer
+    # samples its VAE latent, so a recorded seed actually reproduces that
+    # sample. Mean mode remains independent of the seed.
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
     with torch.inference_mode():
         output_ids = model.generate(
             **inputs,
@@ -148,6 +170,9 @@ def main():
         "max_new_tokens": args.max_new_tokens,
         "generated_tokens": generated_tokens,
         "tokenizer_chunk_size": args.tokenizer_chunk_size,
+        "acoustic_latent_mode": args.acoustic_latent_mode,
+        "original_acoustic_vae_std": original_vae_std,
+        "effective_acoustic_vae_std": float(acoustic_config.vae_std),
         "seed": args.seed,
         "truncated": truncated,
     }
