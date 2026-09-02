@@ -19,7 +19,7 @@ only after it passes the common eligibility and inference checks below.
 | **G3-A** | End-to-end discriminative | [`nvidia/diar_streaming_sortformer_4spk-v2.1`](https://huggingface.co/nvidia/diar_streaming_sortformer_4spk-v2.1) | Full CURC run complete: 95/95 successful and strict RTTM QC passed; AMI training overlap must be reported |
 | **G3-B** | End-to-end discriminative | [BUT SpeechFIT DiaPer](https://github.com/BUTSpeechFIT/DiaPer), 10-attractor non-AMI-fine-tuned checkpoint | Conditional on longest-recording memory test |
 | **G4-A** | Unified generative | [`OpenMOSS-Team/MOSS-Transcribe-Diarize`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) 0.9B | Smoke passed 4/4. A separate 95-file HiPerGator run produced 87 direct primary outputs plus 8 externally chunk-recovered secondary outputs; report the two conditions separately |
-| **G4-B** | Unified generative | [`microsoft/VibeVoice-ASR-HF`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) 8B | Four-domain deterministic smoke failed 0/4: three truncations and one malformed native output; do not scale under the frozen primary settings |
+| **G4-B** | Unified generative | [`microsoft/VibeVoice-ASR-HF`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) 8B | Sampled-latent smoke failed 0/4; deterministic mean-latent recovery is staged as an explicitly separate condition and may scale only after strict smoke and full-pilot gates |
 
 Pyannote `speaker-diarization-3.1` is an optional ninth run used only for a
 within-pyannote version-sensitivity analysis. It is not G2-B and must not be

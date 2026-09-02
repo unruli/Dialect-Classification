@@ -46,7 +46,7 @@ two independently motivated systems per architectural stratum:
 | G3-A | End-to-end discriminative | `nvidia/diar_streaming_sortformer_4spk-v2.1` | Full 95-recording run complete; strict RTTM QC passed |
 | G3-B | End-to-end discriminative | BUT SpeechFIT DiaPer, 10-attractor non-AMI-FT checkpoint | Longest-file gate pending |
 | G4-A | Unified generative | `OpenMOSS-Team/MOSS-Transcribe-Diarize` 0.9B | 95 RTTMs: 87 direct primary outputs + 8 chunk-recovered secondary outputs |
-| G4-B | Unified generative | `microsoft/VibeVoice-ASR-HF` 8B | Deterministic four-domain smoke failed 0/4; do not scale under frozen settings |
+| G4-B | Unified generative | `microsoft/VibeVoice-ASR-HF` 8B | Sampled-latent smoke failed 0/4; gated mean-latent recovery in progress |
 
 Pyannote `speaker-diarization-3.1` may be run as a within-lineage sensitivity
 analysis, but it is not counted as an independent G2 system. The complete

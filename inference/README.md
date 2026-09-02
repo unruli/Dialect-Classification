@@ -40,7 +40,7 @@ the first handoff" guidance.
 | G3-A | Full 95-recording CURC run **complete** (95/95, 0 failures; strict RTTM QC passed) | No, already run |
 | G3-B | Not implemented | Do not batch yet |
 | G4-A | Smoke passed 4/4; batch has 87 direct + 8 chunk-recovered RTTMs | No rerun; keep primary and recovery conditions separate |
-| G4-B | Deterministic four-domain smoke **failed 0/4**; GPU fit, output gate failed | Do not scale under frozen settings |
+| G4-B | Sampled-latent smoke **failed 0/4**; deterministic mean-latent recovery is staged behind strict smoke/pilot gates | Scale only if both recovery gates pass |
 
 The authoritative system definitions, eligibility checklist, pilot IDs, and
 output contract are in
