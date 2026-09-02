@@ -39,14 +39,14 @@ two independently motivated systems per architectural stratum:
 
 | ID | Architectural stratum | Selected system | Status |
 | --- | --- | --- | --- |
-| G1-A | Embedding--clustering cascade | NeMo MarbleNet + TitaNet-Large + NME-SC | Running |
-| G1-B | Embedding--clustering cascade | MarbleNet VAD + BUT SpeechFIT VBx | Running |
-| G2-A | Neuralized overlap-aware modular | `pyannote/speaker-diarization-community-1` | Running |
+| G1-A | Embedding--clustering cascade | NeMo MarbleNet + TitaNet-Large + NME-SC | Full 95-recording run complete |
+| G1-B | Embedding--clustering cascade | MarbleNet VAD + BUT SpeechFIT VBx | Full 95-recording run complete |
+| G2-A | Neuralized overlap-aware modular | `pyannote/speaker-diarization-community-1` | Full 95-recording run complete |
 | G2-B | Neuralized overlap-aware modular | NeMo `diar_msdd_telephonic` v1.0.1 | Pilot pending |
-| G3-A | End-to-end discriminative | `nvidia/diar_streaming_sortformer_4spk-v2.1` | Pilot pending |
+| G3-A | End-to-end discriminative | `nvidia/diar_streaming_sortformer_4spk-v2.1` | Full 95-recording run complete; strict RTTM QC passed |
 | G3-B | End-to-end discriminative | BUT SpeechFIT DiaPer, 10-attractor non-AMI-FT checkpoint | Longest-file gate pending |
 | G4-A | Unified generative | `OpenMOSS-Team/MOSS-Transcribe-Diarize` 0.9B | Pilot pending |
-| G4-B | Unified generative | `microsoft/VibeVoice-ASR-HF` 8B | Memory/parser gate pending |
+| G4-B | Unified generative | `microsoft/VibeVoice-ASR-HF` 8B | Runner implemented; memory/parser smoke gate pending |
 
 Pyannote `speaker-diarization-3.1` may be run as a within-lineage sensitivity
 analysis, but it is not counted as an independent G2 system. The complete

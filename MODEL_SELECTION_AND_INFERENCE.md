@@ -12,14 +12,14 @@ only after it passes the common eligibility and inference checks below.
 
 | ID | Architecture | Frozen candidate | Current status |
 | --- | --- | --- | --- |
-| **G1-A** | Embedding--clustering cascade | NeMo MarbleNet VAD + TitaNet-Large + NME-SC | Running on all 95 recordings |
-| **G1-B** | Embedding--clustering cascade | MarbleNet VAD + [BUT SpeechFIT VBx](https://github.com/BUTSpeechFIT/VBx) | Running on all 95 recordings |
-| **G2-A** | Neuralized overlap-aware modular | [`pyannote/speaker-diarization-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | Running on all 95 recordings |
+| **G1-A** | Embedding--clustering cascade | NeMo MarbleNet VAD + TitaNet-Large + NME-SC | Full 95-recording run complete |
+| **G1-B** | Embedding--clustering cascade | MarbleNet VAD + [BUT SpeechFIT VBx](https://github.com/BUTSpeechFIT/VBx) | Full 95-recording run complete |
+| **G2-A** | Neuralized overlap-aware modular | [`pyannote/speaker-diarization-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | Full 95-recording run complete |
 | **G2-B** | Neuralized overlap-aware modular | NeMo [`diar_msdd_telephonic` v1.0.1](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/diar_msdd_telephonic) | Pending balanced pilot; telephone-domain specialization must be reported |
-| **G3-A** | End-to-end discriminative | [`nvidia/diar_streaming_sortformer_4spk-v2.1`](https://huggingface.co/nvidia/diar_streaming_sortformer_4spk-v2.1) | Pending balanced pilot; AMI training overlap must be reported |
+| **G3-A** | End-to-end discriminative | [`nvidia/diar_streaming_sortformer_4spk-v2.1`](https://huggingface.co/nvidia/diar_streaming_sortformer_4spk-v2.1) | Full CURC run complete: 95/95 successful and strict RTTM QC passed; AMI training overlap must be reported |
 | **G3-B** | End-to-end discriminative | [BUT SpeechFIT DiaPer](https://github.com/BUTSpeechFIT/DiaPer), 10-attractor non-AMI-fine-tuned checkpoint | Conditional on longest-recording memory test |
 | **G4-A** | Unified generative | [`OpenMOSS-Team/MOSS-Transcribe-Diarize`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) 0.9B | Pending balanced pilot and RTTM parser validation |
-| **G4-B** | Unified generative | [`microsoft/VibeVoice-ASR-HF`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) 8B | Conditional on 24-GB memory, parser, and overlap-output tests |
+| **G4-B** | Unified generative | [`microsoft/VibeVoice-ASR-HF`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) 8B | Official-API runner implemented; conditional on 24-GB memory, parser, and overlap-output smoke tests |
 
 Pyannote `speaker-diarization-3.1` is an optional ninth run used only for a
 within-pyannote version-sensitivity analysis. It is not G2-B and must not be

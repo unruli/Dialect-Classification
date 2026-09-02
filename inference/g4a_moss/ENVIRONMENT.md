@@ -14,6 +14,7 @@ conda activate <env-name>
 
 git clone https://github.com/OpenMOSS/MOSS-Transcribe-Diarize.git
 cd MOSS-Transcribe-Diarize
+git checkout 61bc29cd4120be7b5d3b761b64cd5dff57263642
 uv pip install -e ".[torch-runtime]" --torch-backend=auto
 ```
 

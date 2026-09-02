@@ -1,18 +1,16 @@
-"""run_model.py adapter for G4-A: OpenMOSS-Team/MOSS-Transcribe-Diarize.
-UNVALIDATED -- see run_g4a_moss.py's module docstring. No environment was
-built and no live test was run for this system in this export."""
+"""run_model.py adapter for G4-B: microsoft/VibeVoice-ASR-HF (8B)."""
 import json
 import os
 import subprocess
 import sys
 import tempfile
 
-SYSTEM_ID = "G4-A"
+SYSTEM_ID = "G4-B"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def run_one(wav_path, raw_out_dir, uri, cache_dir, device="cuda", **_):
-    runner = os.path.join(HERE, "run_g4a_moss.py")
+    runner = os.path.join(HERE, "run_g4b_vibevoice.py")
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tf:
         result_json = tf.name
     try:
@@ -38,10 +36,8 @@ def run_one(wav_path, raw_out_dir, uri, cache_dir, device="cuda", **_):
 
 def code_revision():
     return {
-        "checkpoint": "OpenMOSS-Team/MOSS-Transcribe-Diarize",
-        "inference_package_revision": "61bc29cd4120be7b5d3b761b64cd5dff57263642",
-        "license": "Apache-2.0",
+        "checkpoint": "microsoft/VibeVoice-ASR-HF",
+        "license": "MIT",
         "validated": False,
-        "validation_note": "no GPU smoke test was run for G4-A in this export; code is written from "
-                            "the published model card and is unvalidated",
+        "validation_note": "first GPU smoke test pending; uses the official Transformers API",
     }

@@ -7,7 +7,7 @@ copying any corpus into Git.
 
 ## Code availability
 
-**Updated 2026-08-31.** The G1-A/G1-B/G2-A runner has now been exported from
+**Updated 2026-09-02.** The G1-A/G1-B/G2-A runner has now been exported from
 `levi-compute` (branch `codex/export-inference-runners`) as
 `g1a_nemo/`, `g1b_vbx/`, `g2a_pyannote/`, and a shared `common/` module,
 behind the single CLI described below. G3-A (`g3a_sortformer/`) has also been
@@ -33,10 +33,10 @@ the first handoff" guidance.
 | G1-B | Exported, proven; same completed 95-recording run as G1-A | No, already run |
 | G2-A | Exported, proven; same completed 95-recording run as G1-A | No, already run |
 | G2-B | Not implemented (placeholder directory only) | Third priority |
-| G3-A | Exported; 90-second GPU smoke test **passed** | **First priority** -- full pilot/batch still pending |
+| G3-A | Full 95-recording CURC run **complete** (95/95, 0 failures; strict RTTM QC passed) | No, already run |
 | G3-B | Not implemented | Do not batch yet |
 | G4-A | Exported, **code-only, unvalidated** -- no environment built, no test run | **Second priority**, but validate the environment/smoke test first |
-| G4-B | Not implemented | Do not batch yet |
+| G4-B | Runner implemented from the official Transformers API; GPU-unvalidated | Run only the gated 90-second smoke tests |
 
 The authoritative system definitions, eligibility checklist, pilot IDs, and
 output contract are in
@@ -55,6 +55,7 @@ inference/
   g2b_msdd/            # placeholder -- not implemented
   g3a_sortformer/       # nvidia/diar_streaming_sortformer_4spk-v2.1 (GPU) -- smoke-tested
   g4a_moss/            # OpenMOSS-Team/MOSS-Transcribe-Diarize (unvalidated)
+  g4b_vibevoice/       # microsoft/VibeVoice-ASR-HF (8B; gated/unvalidated)
   legacy/              # historical scripts that produced the live G1-A/G1-B/G2-A run; superseded by run_model.py
 ```
 
