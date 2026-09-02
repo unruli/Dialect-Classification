@@ -14,6 +14,9 @@ Run on HiPerGator (NVIDIA L4, driver 580.178, torch cu118 for G3-A / cu128 for G
 - 8 token-dense long recordings (EN2002c + 7 Bangor) truncated single-pass even at 131072 tokens
   (bilingual code-switch = ~40-50 turns/min); recovered via chunked inference with overlap-based
   speaker linking. Those RTTMs have full temporal coverage; cross-chunk speaker labels were consolidated with TitaNet (titanet_large) embedding clustering (calibrated cosine threshold 0.40), after which 7/8 recovered files match the reference speaker count (zeledon06 predicts 3 vs ref 2).
+- The 8 recovered files are a **secondary recovery condition**, not primary
+  single-pass successes under the frozen protocol; primary-condition reporting
+  must preserve the 87/8 split.
 
 ## Provenance / caveats
 - AMI is in Sortformer's training data (G3-A AMI numbers are not an independent test).
