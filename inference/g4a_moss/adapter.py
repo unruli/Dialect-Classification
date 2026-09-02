@@ -23,18 +23,25 @@ def run_one(wav_path, raw_out_dir, uri, cache_dir, device="cuda",
                    "--model-cache", cache_dir,
                    "--device", device,
                    "--result-json", result_json]
+        # Token-budget precedence: explicit kwarg > MOSS_MAX_NEW_TOKENS env > runner default.
+        # The env fallback lets a batch job raise the ceiling (long recordings) without
+        # threading a new argument through run_model.py.
+        if max_new_tokens is None:
+            env_mnt = os.environ.get("MOSS_MAX_NEW_TOKENS")
+            max_new_tokens = int(env_mnt) if env_mnt else None
         if max_new_tokens is not None:
             command.extend(["--max-new-tokens", str(max_new_tokens)])
+        timeout = int(os.environ.get("MOSS_TIMEOUT", "3600"))
         proc = subprocess.run(
             command,
-            capture_output=True, text=True, timeout=3600,
+            capture_output=True, text=True, timeout=timeout,
         )
         if proc.returncode != 0:
             return {"ok": False, "error": f"rc={proc.returncode}: {proc.stderr[-4000:]}"}
         with open(result_json) as f:
             return json.load(f)
     except subprocess.TimeoutExpired:
-        return {"ok": False, "error": "timed out after 3600s"}
+        return {"ok": False, "error": f"timed out after {timeout}s"}
     finally:
         if os.path.exists(result_json):
             os.remove(result_json)
