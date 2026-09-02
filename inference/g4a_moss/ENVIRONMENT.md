@@ -2,7 +2,9 @@
 
 **SMOKE-VALIDATED 2026-09-02.** All four fixed 90-second domain recordings
 completed on a 20-GB A100 MIG slice with valid normalized RTTM, no truncation,
-and strict artifact/timestamp QC. Complete-recording pilots remain pending.
+and strict artifact/timestamp QC. A separate HiPerGator batch later produced
+87 direct single-pass RTTMs and 8 externally chunk-recovered RTTMs. The latter
+must be reported as a secondary recovery condition, not primary successes.
 
 ## Setup
 
@@ -30,14 +32,17 @@ plus the pinned torch/transformers stack above. The repo also ships
 `mtd-subtitle-web` (web UI), neither of which this project uses --
 `run_g4a_moss.py` calls the Python helpers directly.
 
-## Validated CURC configuration and remaining gate
+## Validated configurations and long-audio caveat
 
 The passing CURC environment used Python 3.12, PyTorch 2.8.0+cu128,
 Transformers 5.6.0, and official package revision
 `61bc29cd4120be7b5d3b761b64cd5dff57263642` on driver 570.124.06. Peak
-allocated GPU memory was 1,985.4 MiB. This does not establish that a complete
-49.54-minute recording fits or finishes within the allocation; run the four
-complete pilots and longest-recording gate before the 95-file batch.
+allocated GPU memory was 1,985.4 MiB. In the later HiPerGator run, 8 token-dense
+recordings truncated in the direct condition even with larger generation
+ceilings and were recovered using external chunking plus speaker linking. See
+[`../../runs/architecture_audit/RESULTS.md`](../../runs/architecture_audit/RESULTS.md).
+Because external chunking changes the frozen primary protocol, analyze those
+8 recovery RTTMs separately from the 87 direct outputs.
 
 ## License / gating
 

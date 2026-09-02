@@ -45,7 +45,7 @@ two independently motivated systems per architectural stratum:
 | G2-B | Neuralized overlap-aware modular | NeMo `diar_msdd_telephonic` v1.0.1 | Pilot pending |
 | G3-A | End-to-end discriminative | `nvidia/diar_streaming_sortformer_4spk-v2.1` | Full 95-recording run complete; strict RTTM QC passed |
 | G3-B | End-to-end discriminative | BUT SpeechFIT DiaPer, 10-attractor non-AMI-FT checkpoint | Longest-file gate pending |
-| G4-A | Unified generative | `OpenMOSS-Team/MOSS-Transcribe-Diarize` 0.9B | Four-domain 90-second smoke passed 4/4; complete pilots pending |
+| G4-A | Unified generative | `OpenMOSS-Team/MOSS-Transcribe-Diarize` 0.9B | 95 RTTMs: 87 direct primary outputs + 8 chunk-recovered secondary outputs |
 | G4-B | Unified generative | `microsoft/VibeVoice-ASR-HF` 8B | Deterministic four-domain smoke failed 0/4; do not scale under frozen settings |
 
 Pyannote `speaker-diarization-3.1` may be run as a within-lineage sensitivity

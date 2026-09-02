@@ -15,7 +15,10 @@ implemented and **passed a live 90-second GPU smoke test** on `levi-compute`
 during this export (device cuda, 7.97s wall, 918.5 MiB peak GPU memory,
 2 speakers predicted on a 2-speaker pilot recording -- see that run's
 `run_manifest.json` for the full record). G4-A (`g4a_moss/`) subsequently
-passed all four 90-second domain smokes on CURC with strict RTTM QC. G4-B
+passed all four 90-second domain smokes on CURC with strict RTTM QC. A separate
+HiPerGator batch produced 87 direct single-pass outputs and recovered 8
+token-dense files through external chunking; those recovery outputs are a
+secondary condition, not primary single-pass successes. G4-B
 (`g4b_vibevoice/`) fit a 20-GB A100 slice but failed all four deterministic
 smokes: three hit the 4,096-token ceiling and one returned malformed JSON-like
 output. Raw outputs and failure records were retained.
@@ -36,7 +39,7 @@ the first handoff" guidance.
 | G2-B | Not implemented (placeholder directory only) | Third priority |
 | G3-A | Full 95-recording CURC run **complete** (95/95, 0 failures; strict RTTM QC passed) | No, already run |
 | G3-B | Not implemented | Do not batch yet |
-| G4-A | Four-domain 90-second CURC smoke **passed 4/4**; strict RTTM QC passed | Run four complete-recording pilots next |
+| G4-A | Smoke passed 4/4; batch has 87 direct + 8 chunk-recovered RTTMs | No rerun; keep primary and recovery conditions separate |
 | G4-B | Deterministic four-domain smoke **failed 0/4**; GPU fit, output gate failed | Do not scale under frozen settings |
 
 The authoritative system definitions, eligibility checklist, pilot IDs, and
@@ -171,11 +174,13 @@ python inference/run_model.py \
   --full
 ```
 
-Repeat with `--system G4-A` for the four complete-recording pilots; its
-environment and 90-second cross-domain smoke are now validated. Run `G2-B`
-third if GPU time permits, once it is implemented. Do not start G3-B as a
-95-recording batch until its longest-file gate passes. Do not scale G4-B under
-the frozen primary settings because its four-domain smoke failed.
+G3-A and G4-A batch outputs now exist; do not rerun them merely to fill the
+matrix. For G4-A, keep the 87 direct outputs separate from the 8 externally
+chunk-recovered outputs documented in
+[`../runs/architecture_audit/RESULTS.md`](../runs/architecture_audit/RESULTS.md).
+Run `G2-B` next once it is implemented. Do not start G3-B as a 95-recording
+batch until its longest-file gate passes. Do not scale G4-B under the frozen
+primary settings because its four-domain smoke failed.
 
 Expected outputs (produced by `run_model.py`):
 
