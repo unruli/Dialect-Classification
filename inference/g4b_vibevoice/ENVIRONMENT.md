@@ -31,6 +31,9 @@ Eager attention is intentional: Transformers 5.6 rejects SDPA for the nested
 `VibeVoiceAcousticTokenizerEncoderModel` and identifies eager attention as the
 supported fallback.
 
+Use `--max-new-tokens 4096` with `run_model.py` for the bounded 90-second
+smoke set. Retain the runner's 32768-token default for complete recordings.
+
 The 8B BF16 checkpoint must first pass a 90-second smoke test on a GPU with at
 least 24 GB usable memory. Do not start complete-recording pilots until the
 memory, parser, timestamp-bound, and maximum-token gates pass.

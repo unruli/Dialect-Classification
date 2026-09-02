@@ -11,18 +11,22 @@ SYSTEM_ID = "G4-A"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def run_one(wav_path, raw_out_dir, uri, cache_dir, device="cuda", **_):
+def run_one(wav_path, raw_out_dir, uri, cache_dir, device="cuda",
+            max_new_tokens=None, **_):
     runner = os.path.join(HERE, "run_g4a_moss.py")
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tf:
         result_json = tf.name
     try:
+        command = [sys.executable, runner,
+                   "--wav", wav_path,
+                   "--out-dir", raw_out_dir,
+                   "--model-cache", cache_dir,
+                   "--device", device,
+                   "--result-json", result_json]
+        if max_new_tokens is not None:
+            command.extend(["--max-new-tokens", str(max_new_tokens)])
         proc = subprocess.run(
-            [sys.executable, runner,
-             "--wav", wav_path,
-             "--out-dir", raw_out_dir,
-             "--model-cache", cache_dir,
-             "--device", device,
-             "--result-json", result_json],
+            command,
             capture_output=True, text=True, timeout=3600,
         )
         if proc.returncode != 0:

@@ -156,7 +156,7 @@ def process_one(adapter, system_id, rec, output_dir, cache_dir, config, device,
         wav_path=wav_path, raw_out_dir=raw_dir, uri=uri, cache_dir=cache_dir,
         device=device, vad_lab_path=vad_lab_lookup.get((dataset, recording_id)),
         vbx_repo_dir=vbx_repo_dir, work_dir=os.path.join(work_dir, f"{dataset}__{recording_id}"),
-        hf_home=hf_home,
+        hf_home=hf_home, max_new_tokens=config.get("max_new_tokens"),
     )
 
     sampler = GPUMemSampler()
@@ -229,6 +229,9 @@ def main():
                      help="trim audio to this many seconds before inference (e.g. a single "
                           "90-second smoke test with --full --recording-id <id> --trim-seconds 90); "
                           "does not add a second full-recording pass the way --pilot does")
+    ap.add_argument("--max-new-tokens", type=int, default=None,
+                    help="optional generation ceiling for generative systems (G4-A/G4-B); "
+                         "use a smaller explicit value for bounded smoke tests")
     ap.add_argument("--cache-dir", default=None, help="checkpoint/model cache dir (default: <output-dir>/cache)")
     ap.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     ap.add_argument("--vbx-repo-dir", default=None, help="G1-B only: path to a cloned BUTSpeechFIT/VBx checkout")
