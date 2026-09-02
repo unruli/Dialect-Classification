@@ -14,12 +14,16 @@ python -m pip install transformers==5.6.0 accelerate soundfile librosa
 
 The primary condition uses:
 
-- `microsoft/VibeVoice-ASR-HF`, BF16, SDPA;
+- `microsoft/VibeVoice-ASR-HF`, BF16, eager attention;
 - `do_sample=False` and no contextual prompt or hotwords;
 - `tokenizer_chunk_size=64000` (a multiple of the released 3200-sample hop);
 - batch size 1 and no oracle speaker count;
 - raw native text plus the processor's parsed output retained before RTTM
   normalization.
+
+Eager attention is intentional: Transformers 5.6 rejects SDPA for the nested
+`VibeVoiceAcousticTokenizerEncoderModel` and identifies eager attention as the
+supported fallback.
 
 The 8B BF16 checkpoint must first pass a 90-second smoke test on a GPU with at
 least 24 GB usable memory. Do not start complete-recording pilots until the

@@ -74,13 +74,15 @@ def main():
             model_id,
             dtype=dtype,
             device_map="auto",
-            attn_implementation="sdpa",
+            # Transformers 5.6 cannot dispatch the nested VibeVoice acoustic
+            # tokenizer through SDPA. Eager is its supported fallback.
+            attn_implementation="eager",
         )
     else:
         model = VibeVoiceAsrForConditionalGeneration.from_pretrained(
             model_id,
             dtype=dtype,
-            attn_implementation="sdpa",
+            attn_implementation="eager",
         ).to("cpu")
     model.eval()
     load_elapsed = time.time() - load_started
