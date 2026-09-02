@@ -34,6 +34,11 @@ supported fallback.
 Use `--max-new-tokens 4096` with `run_model.py` for the bounded 90-second
 smoke set. Retain the runner's 32768-token default for complete recordings.
 
-The 8B BF16 checkpoint must first pass a 90-second smoke test on a GPU with at
-least 24 GB usable memory. Do not start complete-recording pilots until the
-memory, parser, timestamp-bound, and maximum-token gates pass.
+The 8B BF16 checkpoint loaded and inferred without offload on a 20-GB A100 MIG
+slice (16,241.5 MiB peak), so GPU capacity passed. The deterministic four-domain
+smoke nevertheless failed 0/4: three outputs hit the 4,096-token ceiling and
+one failed the official processor's JSON parser. Do not start complete-recording
+pilots under the frozen primary settings.
+
+The smoke resolved checkpoint revision
+`f22241c2062b3b25272bf117397e03d73381037a`.

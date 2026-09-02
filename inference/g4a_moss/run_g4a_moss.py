@@ -5,13 +5,10 @@ helper package (https://github.com/OpenMOSS/MOSS-Transcribe-Diarize),
 verbatim per its published usage example:
   https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize
 
-STILL UNVALIDATED as of this rewrite: no environment was built and no live
-test has been run for this system. It was rewritten from written-from-scratch
-transformers calls to the project's own build_transcription_messages /
-generate_transcription / parse_transcript helpers because the earlier version
-duplicated logic the official package already provides correctly (prompt
-construction, message formatting) -- rewriting it does not itself validate
-it. Do not treat a clean syntax check or --help as evidence this runs.
+The four fixed 90-second domain smokes passed on CURC on 2026-09-02 with valid
+normalized RTTM output. Complete-recording pilots remain pending. This uses the
+project's own build_transcription_messages / generate_transcription /
+parse_transcript helpers rather than duplicating its prompt and message logic.
 
 Preserves the complete raw generated string before parsing, and detects
 max-token truncation, per MODEL_SELECTION_AND_INFERENCE.md's G4-A settings

@@ -1,10 +1,10 @@
 # G4-A environment: OpenMOSS-Team/MOSS-Transcribe-Diarize (0.9B)
 
-**UNVALIDATED.** No environment was built and no live test was run for this
-system as part of this export -- only `run_g4a_moss.py`'s syntax/imports were
-checked. Do not treat that as evidence it runs correctly.
+**SMOKE-VALIDATED 2026-09-02.** All four fixed 90-second domain recordings
+completed on a 20-GB A100 MIG slice with valid normalized RTTM, no truncation,
+and strict artifact/timestamp QC. Complete-recording pilots remain pending.
 
-## Setup (per the published model card, not independently verified here)
+## Setup
 
 Requires **Python 3.12+**, a separate environment from G1-A/G1-B/G2-A/G3-A:
 
@@ -12,39 +12,32 @@ Requires **Python 3.12+**, a separate environment from G1-A/G1-B/G2-A/G3-A:
 conda create -n <env-name> python=3.12 -y
 conda activate <env-name>
 
+python -m pip install --index-url https://download.pytorch.org/whl/cu128 \
+  torch==2.8.0 torchaudio==2.8.0
+python -m pip install transformers==5.6.0
+
 git clone https://github.com/OpenMOSS/MOSS-Transcribe-Diarize.git
 cd MOSS-Transcribe-Diarize
 git checkout 61bc29cd4120be7b5d3b761b64cd5dff57263642
-uv pip install -e ".[torch-runtime]" --torch-backend=auto
+python -m pip install -e .
 ```
 
 That installs `moss_transcribe_diarize` (the package `run_g4a_moss.py` imports:
 `parse_transcript`, and from `moss_transcribe_diarize.inference_utils`:
 `build_transcription_messages`, `generate_transcription`, `resolve_device`)
-plus a matching torch/transformers stack, per the repository's own
-`torch-runtime` extra. The repo also ships `mtd-subtitle` (batch CLI) and
+plus the pinned torch/transformers stack above. The repo also ships
+`mtd-subtitle` (batch CLI) and
 `mtd-subtitle-web` (web UI), neither of which this project uses --
 `run_g4a_moss.py` calls the Python helpers directly.
 
-## Known integration risk -- confirm before relying on GPU here
+## Validated CURC configuration and remaining gate
 
-Two install paths are documented for this model and they may not resolve the
-same torch build: the HF model card's standalone snippet pins
-`--index-url https://download.pytorch.org/whl/cu128`, while the GitHub repo's
-own instructions use `uv pip install -e ".[torch-runtime]" --torch-backend=auto`,
-which may autodetect a driver-appropriate build instead of forcing cu128.
-**Neither has been verified in this export.** If the resolved build does turn
-out to be cu128: every other GPU system in this project (G1-A, G3-A) runs on
-a driver class capped at CUDA 12.2 (`nvidia-smi` reports "CUDA Version: 12.2"),
-and this project already hit and documented the identical class of problem
-for G2-A (`pyannote-audio` 4.x's torch>=2.8.0 floor has no cu-index build at
-or below cu124) -- a cu128 build would very likely have the same
-driver-compatibility problem. Confirm with `python -c "import torch;
-print(torch.cuda.is_available())"` after setup, before assuming GPU works. A
-CPU fallback is a real possibility, in which case `--device cpu` should be
-used and the runtime budgeted accordingly (this 0.9B generative model will be
-considerably slower on CPU than the embedding/clustering systems in this
-project).
+The passing CURC environment used Python 3.12, PyTorch 2.8.0+cu128,
+Transformers 5.6.0, and official package revision
+`61bc29cd4120be7b5d3b761b64cd5dff57263642` on driver 570.124.06. Peak
+allocated GPU memory was 1,985.4 MiB. This does not establish that a complete
+49.54-minute recording fits or finishes within the allocation; run the four
+complete pilots and longest-recording gate before the 95-file batch.
 
 ## License / gating
 
@@ -53,6 +46,5 @@ export; no `HF_TOKEN` requirement is currently coded into `run_g4a_moss.py`.
 
 ## Checkpoint
 
-`OpenMOSS-Team/MOSS-Transcribe-Diarize` -- resolved from the HF Hub
-identifier at run time; no specific commit/revision has been pinned or
-verified in this export.
+`OpenMOSS-Team/MOSS-Transcribe-Diarize`, resolved checkpoint revision
+`704aa4a9c304e8520be88901e0d1960158ef5b15` in the passing smoke run.

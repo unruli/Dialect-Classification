@@ -18,8 +18,8 @@ only after it passes the common eligibility and inference checks below.
 | **G2-B** | Neuralized overlap-aware modular | NeMo [`diar_msdd_telephonic` v1.0.1](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/diar_msdd_telephonic) | Pending balanced pilot; telephone-domain specialization must be reported |
 | **G3-A** | End-to-end discriminative | [`nvidia/diar_streaming_sortformer_4spk-v2.1`](https://huggingface.co/nvidia/diar_streaming_sortformer_4spk-v2.1) | Full CURC run complete: 95/95 successful and strict RTTM QC passed; AMI training overlap must be reported |
 | **G3-B** | End-to-end discriminative | [BUT SpeechFIT DiaPer](https://github.com/BUTSpeechFIT/DiaPer), 10-attractor non-AMI-fine-tuned checkpoint | Conditional on longest-recording memory test |
-| **G4-A** | Unified generative | [`OpenMOSS-Team/MOSS-Transcribe-Diarize`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) 0.9B | Pending balanced pilot and RTTM parser validation |
-| **G4-B** | Unified generative | [`microsoft/VibeVoice-ASR-HF`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) 8B | Official-API runner implemented; conditional on 24-GB memory, parser, and overlap-output smoke tests |
+| **G4-A** | Unified generative | [`OpenMOSS-Team/MOSS-Transcribe-Diarize`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) 0.9B | Four-domain 90-second CURC smoke passed 4/4 with strict RTTM QC; complete-recording pilots pending |
+| **G4-B** | Unified generative | [`microsoft/VibeVoice-ASR-HF`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) 8B | Four-domain deterministic smoke failed 0/4: three truncations and one malformed native output; do not scale under the frozen primary settings |
 
 Pyannote `speaker-diarization-3.1` is an optional ninth run used only for a
 within-pyannote version-sensitivity analysis. It is not G2-B and must not be
@@ -61,15 +61,18 @@ Run these in order on the collaborator's GPU:
 1. **G3-A Streaming Sortformer** -- highest priority. It adds the missing
    end-to-end discriminative family and has a small released checkpoint with
    native long-form streaming.
-2. **G4-A MOSS-Transcribe-Diarize** -- second priority. It adds the missing
-   unified generative family, is 0.9B parameters, and supports up to 90 minutes.
+2. **G4-A MOSS-Transcribe-Diarize** -- its four 90-second tests passed; run the
+   four complete-recording pilots next. It adds the missing unified generative
+   family, is 0.9B parameters, and supports up to 90 minutes.
 3. **G2-B NeMo MSDD** -- run after the first two if time permits. It gives G2 an
    implementation independent of pyannote, but the public checkpoint is tuned
    for telephone speech and therefore requires a careful cross-domain pilot.
 4. **G3-B DiaPer** -- pilot only until it processes the longest recording
    without out-of-memory failure. Do not launch the 95-file batch first.
-5. **G4-B VibeVoice-ASR** -- pilot only until the 8B model processes the longest
-   recording on the available GPU and produces fully parseable output.
+5. **G4-B VibeVoice-ASR** -- halted at the 90-second smoke gate. It fit the
+   20-GB A100 slice but produced three 4,096-token truncations and one malformed
+   JSON-like output with seed 0; do not run complete pilots or the 95-file batch
+   under these frozen settings.
 
 This division avoids duplicating G1-A, G1-B, and G2-A, which are already being
 run elsewhere. If only two models can be assigned, assign **G3-A and G4-A**.

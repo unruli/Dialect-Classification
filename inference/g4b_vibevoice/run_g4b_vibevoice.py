@@ -153,6 +153,12 @@ def main():
     }
 
     if truncated:
+        with open(parsed_path, "w") as handle:
+            json.dump(
+                {"parse_error": "not attempted: generation reached max_new_tokens without EOS"},
+                handle,
+                indent=2,
+            )
         result.update(ok=False, error="generation reached max_new_tokens without EOS")
         _write_result(args.result_json, result)
         return

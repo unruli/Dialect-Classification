@@ -297,7 +297,7 @@ def main():
     # Static, system-level facts -- refreshed (not appended) every invocation
     # since they describe the code/checkpoint, not a specific recording.
     # code_revision() dicts also carry known caveats (e.g. G3-A's AMI
-    # training-data overlap, G4-A's unvalidated status) -- kept verbatim here
+    # training-data overlap and generative smoke-gate status) -- kept verbatim here
     # rather than summarized, so a reader of run_manifest.json alone sees them.
     run_manifest["system_code_revision"] = system_code_revision
     run_manifest["last_run_config"] = config_record

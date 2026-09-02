@@ -42,6 +42,9 @@ def code_revision():
     return {
         "checkpoint": "microsoft/VibeVoice-ASR-HF",
         "license": "MIT",
-        "validated": False,
-        "validation_note": "first GPU smoke test pending; uses the official Transformers API",
+        "validated": True,
+        "smoke_gate_passed": False,
+        "validation_note": "four fixed deterministic 90-second domain smokes ran on CURC A100 "
+                           "MIG on 2026-09-02; three truncated at 4096 tokens and one failed "
+                           "the official processor JSON parser; do not scale under frozen settings",
     }

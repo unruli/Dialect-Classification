@@ -1,6 +1,8 @@
 """run_model.py adapter for G4-A: OpenMOSS-Team/MOSS-Transcribe-Diarize.
-UNVALIDATED -- see run_g4a_moss.py's module docstring. No environment was
-built and no live test was run for this system in this export."""
+
+The four fixed 90-second domain smokes passed on CURC on 2026-09-02. Complete
+recording pilots remain pending.
+"""
 import json
 import os
 import subprocess
@@ -52,7 +54,8 @@ def code_revision():
         "checkpoint": "OpenMOSS-Team/MOSS-Transcribe-Diarize",
         "inference_package_revision": "61bc29cd4120be7b5d3b761b64cd5dff57263642",
         "license": "Apache-2.0",
-        "validated": False,
-        "validation_note": "no GPU smoke test was run for G4-A in this export; code is written from "
-                            "the published model card and is unvalidated",
+        "validated": True,
+        "smoke_gate_passed": True,
+        "validation_note": "four fixed 90-second domain smokes passed with strict RTTM QC on "
+                           "CURC A100 MIG on 2026-09-02; complete-recording pilots pending",
     }
