@@ -37,3 +37,4 @@ hpg_*.sbatch
 hpg_*.log
 dl_*.sh
 dl_*.log
+runs/**/*.bak

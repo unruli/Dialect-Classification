@@ -308,12 +308,12 @@
       "pass": "full",
       "status": "success",
       "n_segments": 851,
-      "n_speakers_predicted": 7,
+      "n_speakers_predicted": 3,
       "n_speakers_reference": 3,
       "wall_elapsed_sec": null,
       "peak_gpu_memory_mib": null,
-      "recovery_method": "chunked (8min chunks, 30s overlap, overlap-based cross-chunk speaker linking)",
-      "caveat": "single-pass truncated at max_new_tokens; recovered via chunking. Cross-chunk speaker labels may over-fragment."
+      "recovery_method": "chunked (8min chunks, 30s overlap) + TitaNet embedding speaker re-ID (agglomerative, cosine dist thr=0.40)",
+      "caveat": "single-pass truncated even at 131072 tokens; recovered via chunking, then speaker labels consolidated by TitaNet embedding clustering. 7/8 recovered files match reference speaker count (zeledon06 predicts 3 vs ref 2)."
     },
     "ami/EN2002d": {
       "dataset": "ami",
@@ -482,8 +482,8 @@
       "n_speakers_reference": 2,
       "wall_elapsed_sec": null,
       "peak_gpu_memory_mib": null,
-      "recovery_method": "chunked (8min chunks, 30s overlap, overlap-based cross-chunk speaker linking)",
-      "caveat": "single-pass truncated at max_new_tokens; recovered via chunking. Cross-chunk speaker labels may over-fragment."
+      "recovery_method": "chunked (8min chunks, 30s overlap) + TitaNet embedding speaker re-ID (agglomerative, cosine dist thr=0.40)",
+      "caveat": "single-pass truncated even at 131072 tokens; recovered via chunking, then speaker labels consolidated by TitaNet embedding clustering. 7/8 recovered files match reference speaker count (zeledon06 predicts 3 vs ref 2)."
     },
     "bangor_miami_eng/herring06": {
       "dataset": "bangor_miami_eng",
@@ -508,8 +508,8 @@
       "n_speakers_reference": 2,
       "wall_elapsed_sec": null,
       "peak_gpu_memory_mib": null,
-      "recovery_method": "chunked (8min chunks, 30s overlap, overlap-based cross-chunk speaker linking)",
-      "caveat": "single-pass truncated at max_new_tokens; recovered via chunking. Cross-chunk speaker labels may over-fragment."
+      "recovery_method": "chunked (8min chunks, 30s overlap) + TitaNet embedding speaker re-ID (agglomerative, cosine dist thr=0.40)",
+      "caveat": "single-pass truncated even at 131072 tokens; recovered via chunking, then speaker labels consolidated by TitaNet embedding clustering. 7/8 recovered files match reference speaker count (zeledon06 predicts 3 vs ref 2)."
     },
     "bangor_miami_eng/herring08": {
       "dataset": "bangor_miami_eng",
@@ -590,12 +590,12 @@
       "pass": "full",
       "status": "success",
       "n_segments": 631,
-      "n_speakers_predicted": 3,
+      "n_speakers_predicted": 2,
       "n_speakers_reference": 2,
       "wall_elapsed_sec": null,
       "peak_gpu_memory_mib": null,
-      "recovery_method": "chunked (8min chunks, 30s overlap, overlap-based cross-chunk speaker linking)",
-      "caveat": "single-pass truncated at max_new_tokens; recovered via chunking. Cross-chunk speaker labels may over-fragment."
+      "recovery_method": "chunked (8min chunks, 30s overlap) + TitaNet embedding speaker re-ID (agglomerative, cosine dist thr=0.40)",
+      "caveat": "single-pass truncated even at 131072 tokens; recovered via chunking, then speaker labels consolidated by TitaNet embedding clustering. 7/8 recovered files match reference speaker count (zeledon06 predicts 3 vs ref 2)."
     },
     "bangor_miami_eng/sastre03": {
       "dataset": "bangor_miami_eng",
@@ -668,8 +668,8 @@
       "n_speakers_reference": 2,
       "wall_elapsed_sec": null,
       "peak_gpu_memory_mib": null,
-      "recovery_method": "chunked (8min chunks, 30s overlap, overlap-based cross-chunk speaker linking)",
-      "caveat": "single-pass truncated at max_new_tokens; recovered via chunking. Cross-chunk speaker labels may over-fragment."
+      "recovery_method": "chunked (8min chunks, 30s overlap) + TitaNet embedding speaker re-ID (agglomerative, cosine dist thr=0.40)",
+      "caveat": "single-pass truncated even at 131072 tokens; recovered via chunking, then speaker labels consolidated by TitaNet embedding clustering. 7/8 recovered files match reference speaker count (zeledon06 predicts 3 vs ref 2)."
     },
     "bangor_miami_eng/sastre10": {
       "dataset": "bangor_miami_eng",
@@ -678,12 +678,12 @@
       "pass": "full",
       "status": "success",
       "n_segments": 749,
-      "n_speakers_predicted": 4,
+      "n_speakers_predicted": 2,
       "n_speakers_reference": 2,
       "wall_elapsed_sec": null,
       "peak_gpu_memory_mib": null,
-      "recovery_method": "chunked (8min chunks, 30s overlap, overlap-based cross-chunk speaker linking)",
-      "caveat": "single-pass truncated at max_new_tokens; recovered via chunking. Cross-chunk speaker labels may over-fragment."
+      "recovery_method": "chunked (8min chunks, 30s overlap) + TitaNet embedding speaker re-ID (agglomerative, cosine dist thr=0.40)",
+      "caveat": "single-pass truncated even at 131072 tokens; recovered via chunking, then speaker labels consolidated by TitaNet embedding clustering. 7/8 recovered files match reference speaker count (zeledon06 predicts 3 vs ref 2)."
     },
     "bangor_miami_eng/sastre11": {
       "dataset": "bangor_miami_eng",
@@ -768,8 +768,8 @@
       "n_speakers_reference": 2,
       "wall_elapsed_sec": null,
       "peak_gpu_memory_mib": null,
-      "recovery_method": "chunked (8min chunks, 30s overlap, overlap-based cross-chunk speaker linking)",
-      "caveat": "single-pass truncated at max_new_tokens; recovered via chunking. Cross-chunk speaker labels may over-fragment."
+      "recovery_method": "chunked (8min chunks, 30s overlap) + TitaNet embedding speaker re-ID (agglomerative, cosine dist thr=0.40)",
+      "caveat": "single-pass truncated even at 131072 tokens; recovered via chunking, then speaker labels consolidated by TitaNet embedding clustering. 7/8 recovered files match reference speaker count (zeledon06 predicts 3 vs ref 2)."
     },
     "bangor_miami_eng/zeledon08": {
       "dataset": "bangor_miami_eng",
@@ -778,12 +778,12 @@
       "pass": "full",
       "status": "success",
       "n_segments": 580,
-      "n_speakers_predicted": 6,
+      "n_speakers_predicted": 2,
       "n_speakers_reference": 2,
       "wall_elapsed_sec": null,
       "peak_gpu_memory_mib": null,
-      "recovery_method": "chunked (8min chunks, 30s overlap, overlap-based cross-chunk speaker linking)",
-      "caveat": "single-pass truncated at max_new_tokens; recovered via chunking. Cross-chunk speaker labels may over-fragment."
+      "recovery_method": "chunked (8min chunks, 30s overlap) + TitaNet embedding speaker re-ID (agglomerative, cosine dist thr=0.40)",
+      "caveat": "single-pass truncated even at 131072 tokens; recovered via chunking, then speaker labels consolidated by TitaNet embedding clustering. 7/8 recovered files match reference speaker count (zeledon06 predicts 3 vs ref 2)."
     },
     "bangor_miami_eng/zeledon09": {
       "dataset": "bangor_miami_eng",
@@ -1235,5 +1235,5 @@
   },
   "rebuilt_at": "2026-09-02T12:03:36.870660-04:00",
   "rebuild_note": "Consolidated from per-recording RTTMs on disk (authoritative status) + SLURM log timing. Original run_manifest.json (saved as run_manifest.raced.json) was clobbered by 4 parallel jobs sharing one output-dir racing on the shared file.",
-  "g4a_recovery_note": "8 token-dense long recordings (1 AMI, 7 Bangor) truncated MOSS single-pass even at 131072 tokens; recovered via chunked inference. See recovery_method per record."
+  "g4a_recovery_note": "8 token-dense long recordings (1 AMI, 7 Bangor) truncated MOSS single-pass even at 131072 tokens; recovered via chunked inference, then cross-chunk speaker labels were consolidated with TitaNet (titanet_large) embedding clustering (calibrated cosine threshold 0.40). 7/8 match ref count."
 }
