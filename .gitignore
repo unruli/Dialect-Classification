@@ -5,3 +5,36 @@
 # Ignore .wav, .csv, .png files
 *.wav
 *.zip
+/data/datasets/bangor_miami/
+data/datasets/playlogue/audio/
+
+# --- inference run outputs: publish RTTMs + manifests only, never media/text/caches ---
+runs/**/raw/
+runs/**/cache/
+runs/**/_work/
+runs/logs/
+*.log
+# scratch/helper artifacts (not part of the repo)
+.last_*_jobid
+.g4a_*_jobid
+.g4a_full_jobids
+afri_*.py
+afri_*.log
+afri_*.sh
+afrispeech_search.out
+assess_push.sh
+prep_push.py
+rebuild_manifest.py
+build_full.py
+build_full.log
+show_*.py
+dur_profile.py
+check_degen.py
+inspect_moss*.sh
+submit_g4a_full.py
+hpg_*.sh
+hpg_*.sbatch
+hpg_*.log
+dl_*.sh
+dl_*.log
+runs/**/*.bak

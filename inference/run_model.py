@@ -156,7 +156,9 @@ def process_one(adapter, system_id, rec, output_dir, cache_dir, config, device,
         wav_path=wav_path, raw_out_dir=raw_dir, uri=uri, cache_dir=cache_dir,
         device=device, vad_lab_path=vad_lab_lookup.get((dataset, recording_id)),
         vbx_repo_dir=vbx_repo_dir, work_dir=os.path.join(work_dir, f"{dataset}__{recording_id}"),
-        hf_home=hf_home,
+        hf_home=hf_home, max_new_tokens=config.get("max_new_tokens"),
+        g4b_acoustic_latent_mode=config.get("g4b_acoustic_latent_mode", "sample"),
+        g4b_tokenizer_chunk_size=config.get("g4b_tokenizer_chunk_size"),
     )
 
     sampler = GPUMemSampler()
@@ -179,6 +181,11 @@ def process_one(adapter, system_id, rec, output_dir, cache_dir, config, device,
     if not result.get("ok"):
         record["status"] = "failure"
         record["error"] = result.get("error", "unknown failure")
+        # Adapter results have already crossed the JSON subprocess boundary,
+        # so their provenance fields are serializable. Keep them for failed
+        # generations too (raw/parsed artifact paths, checkpoint revision,
+        # token counts, truncation flags, device placement, seed, etc.).
+        record.update({k: v for k, v in result.items() if k not in ("ok", "error")})
         return record, None
 
     raw_rttm_path = result.get("raw_rttm_path")
@@ -224,6 +231,13 @@ def main():
                      help="trim audio to this many seconds before inference (e.g. a single "
                           "90-second smoke test with --full --recording-id <id> --trim-seconds 90); "
                           "does not add a second full-recording pass the way --pilot does")
+    ap.add_argument("--max-new-tokens", type=int, default=None,
+                    help="optional generation ceiling for generative systems (G4-A/G4-B); "
+                         "use a smaller explicit value for bounded smoke tests")
+    ap.add_argument("--g4b-acoustic-latent-mode", choices=("sample", "mean"), default="sample",
+                    help="G4-B only: released stochastic acoustic VAE or deterministic mean latent")
+    ap.add_argument("--g4b-tokenizer-chunk-size", type=int, default=None,
+                    help="G4-B only: tokenizer chunk size in 24-kHz samples (multiple of 3200)")
     ap.add_argument("--cache-dir", default=None, help="checkpoint/model cache dir (default: <output-dir>/cache)")
     ap.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     ap.add_argument("--vbx-repo-dir", default=None, help="G1-B only: path to a cloned BUTSpeechFIT/VBx checkout")
@@ -289,7 +303,7 @@ def main():
     # Static, system-level facts -- refreshed (not appended) every invocation
     # since they describe the code/checkpoint, not a specific recording.
     # code_revision() dicts also carry known caveats (e.g. G3-A's AMI
-    # training-data overlap, G4-A's unvalidated status) -- kept verbatim here
+    # training-data overlap and generative smoke-gate status) -- kept verbatim here
     # rather than summarized, so a reader of run_manifest.json alone sees them.
     run_manifest["system_code_revision"] = system_code_revision
     run_manifest["last_run_config"] = config_record

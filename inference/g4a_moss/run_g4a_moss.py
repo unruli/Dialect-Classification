@@ -5,13 +5,10 @@ helper package (https://github.com/OpenMOSS/MOSS-Transcribe-Diarize),
 verbatim per its published usage example:
   https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize
 
-STILL UNVALIDATED as of this rewrite: no environment was built and no live
-test has been run for this system. It was rewritten from written-from-scratch
-transformers calls to the project's own build_transcription_messages /
-generate_transcription / parse_transcript helpers because the earlier version
-duplicated logic the official package already provides correctly (prompt
-construction, message formatting) -- rewriting it does not itself validate
-it. Do not treat a clean syntax check or --help as evidence this runs.
+The four fixed 90-second domain smokes passed on CURC on 2026-09-02 with valid
+normalized RTTM output. Complete-recording pilots remain pending. This uses the
+project's own build_transcription_messages / generate_transcription /
+parse_transcript helpers rather than duplicating its prompt and message logic.
 
 Preserves the complete raw generated string before parsing, and detects
 max-token truncation, per MODEL_SELECTION_AND_INFERENCE.md's G4-A settings
@@ -68,6 +65,7 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(
         model_id, trust_remote_code=True, dtype="auto", attn_implementation="sdpa",
     ).to(dtype=dtype).to(device).eval()
+    checkpoint_revision = getattr(model.config, "_commit_hash", None)
     processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
     load_elapsed = time.time() - t0
 
@@ -83,6 +81,7 @@ def main():
         dtype=dtype,
     )
     raw_text = generated["text"]
+    generated_tokens = int(generated.get("generated_tokens") or 0)
     infer_elapsed = time.time() - t1
 
     peak_mem_mib = None
@@ -100,7 +99,9 @@ def main():
         "peak_gpu_memory_mib": peak_mem_mib,
         "raw_text_path": raw_text_path,
         "checkpoint_id": model_id,
+        "checkpoint_revision": checkpoint_revision,
         "max_new_tokens": args.max_new_tokens,
+        "generated_tokens": generated_tokens,
     }
 
     try:
@@ -109,9 +110,11 @@ def main():
         segments = []
         result["parse_error"] = f"{type(e).__name__}: {e}"
 
-    # Truncation heuristic: max_new_tokens reached without the generation
-    # reaching a natural close (raw text doesn't end on a segment boundary).
-    truncated = bool(raw_text.strip()) and not raw_text.rstrip().endswith("]")
+    # Conservatively reject output that exhausted the explicit generation
+    # budget, or that did not end at the canonical segment boundary.
+    truncated = generated_tokens >= args.max_new_tokens or (
+        bool(raw_text.strip()) and not raw_text.rstrip().endswith("]")
+    )
     result["truncated"] = truncated
 
     if truncated or not segments:
@@ -127,12 +130,24 @@ def main():
         print(json.dumps(result))
         return
 
+    bad_segments = [
+        {"start": seg.start, "end": seg.end, "speaker": seg.speaker}
+        for seg in segments
+        if seg.start < 0 or seg.end <= seg.start
+    ]
+    if bad_segments:
+        result["ok"] = False
+        result["error"] = f"parsed transcript contains invalid segments: {bad_segments[:5]}"
+        if args.result_json:
+            with open(args.result_json, "w") as f:
+                json.dump(result, f)
+        print(json.dumps(result))
+        return
+
     raw_rttm_path = os.path.join(args.out_dir, f"{uri}.g4a_moss.raw.rttm")
     with open(raw_rttm_path, "w") as f:
         for seg in segments:
             duration = seg.end - seg.start
-            if duration <= 0:
-                continue  # preserved in raw_text_path; not written as an invalid RTTM segment
             f.write(f"SPEAKER {uri} 1 {seg.start:.3f} {duration:.3f} <NA> <NA> {seg.speaker} <NA> <NA>\n")
 
     result["ok"] = True

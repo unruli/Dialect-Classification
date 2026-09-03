@@ -7,17 +7,21 @@ copying any corpus into Git.
 
 ## Code availability
 
-**Updated 2026-08-31.** The G1-A/G1-B/G2-A runner has now been exported from
+**Updated 2026-09-02.** The G1-A/G1-B/G2-A runner has now been exported from
 `levi-compute` (branch `codex/export-inference-runners`) as
 `g1a_nemo/`, `g1b_vbx/`, `g2a_pyannote/`, and a shared `common/` module,
 behind the single CLI described below. G3-A (`g3a_sortformer/`) has also been
 implemented and **passed a live 90-second GPU smoke test** on `levi-compute`
 during this export (device cuda, 7.97s wall, 918.5 MiB peak GPU memory,
 2 speakers predicted on a 2-speaker pilot recording -- see that run's
-`run_manifest.json` for the full record). G4-A (`g4a_moss/`) has been written
-from its published model card but **has NOT been run** -- no environment was
-built and no live test was performed for it in this export; treat it as
-unvalidated until someone actually runs it.
+`run_manifest.json` for the full record). G4-A (`g4a_moss/`) subsequently
+passed all four 90-second domain smokes on CURC with strict RTTM QC. A separate
+HiPerGator batch produced 87 direct single-pass outputs and recovered 8
+token-dense files through external chunking; those recovery outputs are a
+secondary condition, not primary single-pass successes. G4-B
+(`g4b_vibevoice/`) fit a 20-GB A100 slice but failed all four deterministic
+smokes: three hit the 4,096-token ceiling and one returned malformed JSON-like
+output. Raw outputs and failure records were retained.
 
 The G1-A/G1-B/G2-A 95-recording run **completed on `levi-compute`**:
 95/95 recordings, 0 failures, 62,480s (17.36h) total wall time. Outputs
@@ -33,10 +37,10 @@ the first handoff" guidance.
 | G1-B | Exported, proven; same completed 95-recording run as G1-A | No, already run |
 | G2-A | Exported, proven; same completed 95-recording run as G1-A | No, already run |
 | G2-B | Not implemented (placeholder directory only) | Third priority |
-| G3-A | Exported; 90-second GPU smoke test **passed** | **First priority** -- full pilot/batch still pending |
+| G3-A | Full 95-recording CURC run **complete** (95/95, 0 failures; strict RTTM QC passed) | No, already run |
 | G3-B | Not implemented | Do not batch yet |
-| G4-A | Exported, **code-only, unvalidated** -- no environment built, no test run | **Second priority**, but validate the environment/smoke test first |
-| G4-B | Not implemented | Do not batch yet |
+| G4-A | Smoke passed 4/4; batch has 87 direct + 8 chunk-recovered RTTMs | No rerun; keep primary and recovery conditions separate |
+| G4-B | Sampled-latent smoke **failed 0/4**; deterministic mean-latent recovery is staged behind strict smoke/pilot gates | Scale only if both recovery gates pass |
 
 The authoritative system definitions, eligibility checklist, pilot IDs, and
 output contract are in
@@ -54,7 +58,8 @@ inference/
   g2a_pyannote/         # pyannote/speaker-diarization-community-1 (CPU-forced)
   g2b_msdd/            # placeholder -- not implemented
   g3a_sortformer/       # nvidia/diar_streaming_sortformer_4spk-v2.1 (GPU) -- smoke-tested
-  g4a_moss/            # OpenMOSS-Team/MOSS-Transcribe-Diarize (unvalidated)
+  g4a_moss/            # OpenMOSS-Team/MOSS-Transcribe-Diarize (90s smoke passed)
+  g4b_vibevoice/       # microsoft/VibeVoice-ASR-HF (8B; 90s smoke failed)
   legacy/              # historical scripts that produced the live G1-A/G1-B/G2-A run; superseded by run_model.py
 ```
 
@@ -169,11 +174,13 @@ python inference/run_model.py \
   --full
 ```
 
-Repeat with `--system G4-A` only after building and validating its own
-environment -- see `g4a_moss/ENVIRONMENT.md` for the documented, unverified
-risk with that system's GPU requirements. Run `G2-B` third if GPU time
-permits, once it is implemented. Do not start G3-B or G4-B as a
-95-recording batch until their longest-file gates pass.
+G3-A and G4-A batch outputs now exist; do not rerun them merely to fill the
+matrix. For G4-A, keep the 87 direct outputs separate from the 8 externally
+chunk-recovered outputs documented in
+[`../runs/architecture_audit/RESULTS.md`](../runs/architecture_audit/RESULTS.md).
+Run `G2-B` next once it is implemented. Do not start G3-B as a 95-recording
+batch until its longest-file gate passes. Do not scale G4-B under the frozen
+primary settings because its four-domain smoke failed.
 
 Expected outputs (produced by `run_model.py`):
 
