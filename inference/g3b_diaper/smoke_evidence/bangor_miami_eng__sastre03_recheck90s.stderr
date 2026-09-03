@@ -1,0 +1,9 @@
+/dev/shm/dialect-smoke/diaper_repo/diaper/common_utils/features.py:173: FutureWarning: Pass sr=16000, n_fft=512, n_mels=40 as keyword args. From version 0.10 passing these as positional arguments will result in an error
+  mel_basis = librosa.filters.mel(sampling_rate, n_fft, feature_dim)
+pre_crossattention 66048
+latent_attractors 16384
+encoder_attractors 1788672
+latents2attractors 1280
+counter 129
+frame_encoder 2465920
+Total trainable parameters:             4338433
