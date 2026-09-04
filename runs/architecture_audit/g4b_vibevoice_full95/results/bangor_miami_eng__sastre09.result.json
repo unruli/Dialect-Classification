@@ -1,0 +1,50 @@
+{
+  "device": "cuda:0",
+  "load_elapsed_sec": 5.8,
+  "checkpoint_id": "microsoft/VibeVoice-ASR-HF",
+  "checkpoint_revision": "f22241c2062b3b25272bf117397e03d73381037a",
+  "max_new_tokens": 65536,
+  "tokenizer_chunk_size": 1440000,
+  "prompt": null,
+  "source_duration_sec": 2402.11,
+  "prompt_tokens": 18078,
+  "base_seed": 0,
+  "max_attempts": 3,
+  "attempts": [
+    {
+      "attempt": 0,
+      "seed": 0,
+      "generated_tokens": 27648,
+      "elapsed_sec": 812.03,
+      "stop_reason": "duration_exceeded",
+      "clean": true,
+      "n_speech": 613,
+      "n_nonspeech": 1,
+      "coverage": 1.0,
+      "max_end_sec": 2416.72,
+      "n_beyond_duration": 4,
+      "why_invalid": "4 segment(s) end beyond source duration"
+    }
+  ],
+  "infer_elapsed_sec": 812.04,
+  "raw_text_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/bangor_miami_eng/sastre09.g4b_vibevoice.raw.txt",
+  "generated_tokens": 27648,
+  "accepted_seed": 0,
+  "accepted_attempt": 0,
+  "stop_reason": "duration_exceeded",
+  "n_attempts_used": 1,
+  "coverage": 1.0,
+  "max_end_sec": 2416.72,
+  "n_nonspeech_tags_skipped": 1,
+  "speakers": [
+    "0",
+    "1"
+  ],
+  "peak_gpu_memory_mib": 22854.7,
+  "condition": "primary",
+  "termination": "stopped at the known audio duration after full coverage",
+  "n_segments_parsed": 609,
+  "n_segments_dropped_beyond_duration": 4,
+  "ok": true,
+  "raw_rttm_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/bangor_miami_eng/sastre09.g4b_vibevoice.raw.rttm"
+}

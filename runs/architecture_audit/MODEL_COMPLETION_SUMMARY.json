@@ -1,0 +1,63 @@
+{
+  "n_recordings": 95,
+  "per_model_counts": {
+    "G1-A": {
+      "success": 95,
+      "missing": 0,
+      "malformed": 0,
+      "duration_violation": 0,
+      "not_started": 0
+    },
+    "G1-B": {
+      "success": 95,
+      "missing": 0,
+      "malformed": 0,
+      "duration_violation": 0,
+      "not_started": 0
+    },
+    "G2-A": {
+      "success": 95,
+      "missing": 0,
+      "malformed": 0,
+      "duration_violation": 0,
+      "not_started": 0
+    },
+    "G3-A": {
+      "success": 95,
+      "missing": 0,
+      "malformed": 0,
+      "duration_violation": 0,
+      "not_started": 0
+    },
+    "G2-B": {
+      "success": 95,
+      "missing": 0,
+      "malformed": 0,
+      "duration_violation": 0,
+      "not_started": 0
+    },
+    "G4-A": {
+      "success": 95,
+      "missing": 0,
+      "malformed": 0,
+      "duration_violation": 0,
+      "not_started": 0
+    },
+    "G4-B": {
+      "success": 95,
+      "missing": 0,
+      "malformed": 0,
+      "duration_violation": 0,
+      "not_started": 0
+    },
+    "G3-B": {
+      "success": 95,
+      "missing": 0,
+      "malformed": 0,
+      "duration_violation": 0,
+      "not_started": 0
+    }
+  },
+  "n_inconsistencies": 0,
+  "inconsistencies": []
+}

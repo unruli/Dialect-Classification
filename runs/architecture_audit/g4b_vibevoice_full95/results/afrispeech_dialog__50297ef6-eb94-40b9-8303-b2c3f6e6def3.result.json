@@ -1,0 +1,50 @@
+{
+  "device": "cuda:0",
+  "load_elapsed_sec": 6.66,
+  "checkpoint_id": "microsoft/VibeVoice-ASR-HF",
+  "checkpoint_revision": "f22241c2062b3b25272bf117397e03d73381037a",
+  "max_new_tokens": 65536,
+  "tokenizer_chunk_size": 1440000,
+  "prompt": null,
+  "source_duration_sec": 575.04,
+  "prompt_tokens": 4374,
+  "base_seed": 0,
+  "max_attempts": 3,
+  "attempts": [
+    {
+      "attempt": 0,
+      "seed": 0,
+      "generated_tokens": 2916,
+      "elapsed_sec": 61.76,
+      "stop_reason": "eos",
+      "clean": true,
+      "n_speech": 55,
+      "n_nonspeech": 6,
+      "coverage": 1.0,
+      "max_end_sec": 575.04,
+      "n_beyond_duration": 0,
+      "why_invalid": null
+    }
+  ],
+  "infer_elapsed_sec": 61.77,
+  "raw_text_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/afrispeech_dialog/50297ef6-eb94-40b9-8303-b2c3f6e6def3.g4b_vibevoice.raw.txt",
+  "generated_tokens": 2916,
+  "accepted_seed": 0,
+  "accepted_attempt": 0,
+  "stop_reason": "eos",
+  "n_attempts_used": 1,
+  "coverage": 1.0,
+  "max_end_sec": 575.04,
+  "n_nonspeech_tags_skipped": 6,
+  "speakers": [
+    "0",
+    "1"
+  ],
+  "peak_gpu_memory_mib": 17598.6,
+  "condition": "primary",
+  "termination": "model emitted EOS on its own",
+  "n_segments_parsed": 55,
+  "n_segments_dropped_beyond_duration": 0,
+  "ok": true,
+  "raw_rttm_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/afrispeech_dialog/50297ef6-eb94-40b9-8303-b2c3f6e6def3.g4b_vibevoice.raw.rttm"
+}

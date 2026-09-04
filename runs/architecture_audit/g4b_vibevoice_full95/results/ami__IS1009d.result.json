@@ -1,0 +1,53 @@
+{
+  "device": "cuda:0",
+  "load_elapsed_sec": 5.83,
+  "checkpoint_id": "microsoft/VibeVoice-ASR-HF",
+  "checkpoint_revision": "f22241c2062b3b25272bf117397e03d73381037a",
+  "max_new_tokens": 65536,
+  "tokenizer_chunk_size": 1440000,
+  "prompt": null,
+  "source_duration_sec": 1944.5,
+  "prompt_tokens": 14646,
+  "base_seed": 0,
+  "max_attempts": 3,
+  "attempts": [
+    {
+      "attempt": 0,
+      "seed": 0,
+      "generated_tokens": 14730,
+      "elapsed_sec": 391.57,
+      "stop_reason": "eos",
+      "clean": true,
+      "n_speech": 323,
+      "n_nonspeech": 30,
+      "coverage": 0.9905,
+      "max_end_sec": 1926.01,
+      "n_beyond_duration": 0,
+      "why_invalid": null
+    }
+  ],
+  "infer_elapsed_sec": 391.57,
+  "raw_text_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/ami/IS1009d.Mix-Headset.g4b_vibevoice.raw.txt",
+  "generated_tokens": 14730,
+  "accepted_seed": 0,
+  "accepted_attempt": 0,
+  "stop_reason": "eos",
+  "n_attempts_used": 1,
+  "coverage": 0.9905,
+  "max_end_sec": 1926.01,
+  "n_nonspeech_tags_skipped": 30,
+  "speakers": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4"
+  ],
+  "peak_gpu_memory_mib": 21538.6,
+  "condition": "primary",
+  "termination": "model emitted EOS on its own",
+  "n_segments_parsed": 323,
+  "n_segments_dropped_beyond_duration": 0,
+  "ok": true,
+  "raw_rttm_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/ami/IS1009d.Mix-Headset.g4b_vibevoice.raw.rttm"
+}

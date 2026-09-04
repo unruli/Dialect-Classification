@@ -1,0 +1,51 @@
+{
+  "device": "cuda:0",
+  "load_elapsed_sec": 5.97,
+  "checkpoint_id": "microsoft/VibeVoice-ASR-HF",
+  "checkpoint_revision": "f22241c2062b3b25272bf117397e03d73381037a",
+  "max_new_tokens": 65536,
+  "tokenizer_chunk_size": 1440000,
+  "prompt": null,
+  "source_duration_sec": 1964.578,
+  "prompt_tokens": 14797,
+  "base_seed": 0,
+  "max_attempts": 3,
+  "attempts": [
+    {
+      "attempt": 0,
+      "seed": 0,
+      "generated_tokens": 19327,
+      "elapsed_sec": 516.41,
+      "stop_reason": "eos",
+      "clean": true,
+      "n_speech": 492,
+      "n_nonspeech": 52,
+      "coverage": 1.0,
+      "max_end_sec": 1964.58,
+      "n_beyond_duration": 0,
+      "why_invalid": null
+    }
+  ],
+  "infer_elapsed_sec": 516.42,
+  "raw_text_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/playlogue/gleason_mother_helen.g4b_vibevoice.raw.txt",
+  "generated_tokens": 19327,
+  "accepted_seed": 0,
+  "accepted_attempt": 0,
+  "stop_reason": "eos",
+  "n_attempts_used": 1,
+  "coverage": 1.0,
+  "max_end_sec": 1964.58,
+  "n_nonspeech_tags_skipped": 52,
+  "speakers": [
+    "0",
+    "1",
+    "2"
+  ],
+  "peak_gpu_memory_mib": 21596.3,
+  "condition": "primary",
+  "termination": "model emitted EOS on its own",
+  "n_segments_parsed": 492,
+  "n_segments_dropped_beyond_duration": 0,
+  "ok": true,
+  "raw_rttm_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/playlogue/gleason_mother_helen.g4b_vibevoice.raw.rttm"
+}

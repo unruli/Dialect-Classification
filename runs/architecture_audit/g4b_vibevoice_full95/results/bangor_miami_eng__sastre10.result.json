@@ -1,0 +1,49 @@
+{
+  "device": "cuda:0",
+  "load_elapsed_sec": 5.82,
+  "checkpoint_id": "microsoft/VibeVoice-ASR-HF",
+  "checkpoint_revision": "f22241c2062b3b25272bf117397e03d73381037a",
+  "max_new_tokens": 65536,
+  "tokenizer_chunk_size": 1440000,
+  "prompt": null,
+  "source_duration_sec": 2365.436,
+  "prompt_tokens": 17803,
+  "base_seed": 0,
+  "max_attempts": 3,
+  "attempts": [
+    {
+      "attempt": 0,
+      "seed": 0,
+      "generated_tokens": 16048,
+      "elapsed_sec": 445.22,
+      "stop_reason": "eos",
+      "clean": true,
+      "n_speech": 192,
+      "n_nonspeech": 14,
+      "coverage": 1.0,
+      "max_end_sec": 2365.44,
+      "n_beyond_duration": 0,
+      "why_invalid": null
+    }
+  ],
+  "infer_elapsed_sec": 445.24,
+  "raw_text_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/bangor_miami_eng/sastre10.g4b_vibevoice.raw.txt",
+  "generated_tokens": 16048,
+  "accepted_seed": 0,
+  "accepted_attempt": 0,
+  "stop_reason": "eos",
+  "n_attempts_used": 1,
+  "coverage": 1.0,
+  "max_end_sec": 2365.44,
+  "n_nonspeech_tags_skipped": 14,
+  "speakers": [
+    "0"
+  ],
+  "peak_gpu_memory_mib": 22749.7,
+  "condition": "primary",
+  "termination": "model emitted EOS on its own",
+  "n_segments_parsed": 192,
+  "n_segments_dropped_beyond_duration": 0,
+  "ok": true,
+  "raw_rttm_path": "/scratch/alpine/keez8796/dialect-audit/runs/G4-B-full95/raw/bangor_miami_eng/sastre10.g4b_vibevoice.raw.rttm"
+}
