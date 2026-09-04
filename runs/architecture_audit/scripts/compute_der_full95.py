@@ -4,14 +4,23 @@ the manifest's human reference RTTM + UEM, same method as the 5-recording
 pilot's compute_der.py: pyannote.metrics, overlap retained, DER at collar=0.0
 (primary/strict) and collar=0.25 (conventional), plus JER.
 
-As of the 2026-09-03 reorg, every model's full-95 output lives at
-final/<model_dir>/rttm/<dataset>/<recid>.rttm (one consistent layout,
-model name in the directory name -- see final/README.md), so this scores
-whichever of MODELS actually has a full-95 directory present rather than
-a fixed list of 3.
+This copy is scoped to the 4 systems THIS branch contributes -- G1-A,
+G1-B, G2-A, G2-B, each at runs/architecture_audit/<model_dir>/rttm/
+<dataset>/<recid>.rttm. G3-A and G4-A (already merged from a colleague's
+HiPerGator run, at bare runs/architecture_audit/G3-A|G4-A/, not renamed
+to this branch's <model>_full95 convention) are intentionally NOT in
+MODELS here -- see RESULTS.md for how those were validated/scored.
+The DER_JER_*.csv files alongside this script DO include all 5 (G1-A/
+G1-B/G2-A/G2-B/G3-A) as a snapshot from when this was run on
+levi-compute; this script only regenerates the 4-model subset.
+
+As run on levi-compute, BASE/REF_ROOT/MANIFEST below point at that
+host's local diar_smoke/final/ (with final_manifest.csv + the tar-
+extracted human reference RTTMs+UEMs, neither pushed here) -- adjust
+those three constants to reuse this elsewhere.
 
 Writes two CSVs: recording-level (95 x n_models rows) and model-level
-(n_models rows, fixed pipeline order G1-A/G1-B/G2-A/G2-B/G3-A -- NOT a
+(n_models rows, fixed pipeline order G1-A/G1-B/G2-A/G2-B -- NOT a
 ranking, per instructions).
 """
 import csv
@@ -30,11 +39,10 @@ OUT_RECORDING_CSV = os.path.join(BASE, "DER_JER_recording_level_full95.csv")
 OUT_MODEL_CSV = os.path.join(BASE, "DER_JER_model_level_full95.csv")
 
 MODELS = [
-    ("g1a_full95", "G1-A NeMo MarbleNet+TitaNet+spectral"),
-    ("g1b_full95", "G1-B MarbleNet VAD + VBx"),
-    ("g2a_full95", "G2-A pyannote community-1"),
-    ("g2b_full95", "G2-B NeMo diar_msdd_telephonic"),
-    ("g3a_full95", "G3-A nvidia/diar_streaming_sortformer_4spk-v2.1"),
+    ("g1a_nemo_full95", "G1-A NeMo MarbleNet+TitaNet+spectral"),
+    ("g1b_vbx_full95", "G1-B MarbleNet VAD + VBx"),
+    ("g2a_pyannote_full95", "G2-A pyannote community-1"),
+    ("g2b_msdd_full95", "G2-B NeMo diar_msdd_telephonic"),
 ]
 MODELS = [(d, label) for d, label in MODELS if os.path.isdir(os.path.join(BASE, d, "rttm"))]
 

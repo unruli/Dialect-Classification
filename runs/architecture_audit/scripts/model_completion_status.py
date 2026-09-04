@@ -55,17 +55,20 @@ def full95_path(model_dir):
 # Each entry: (display name, path-resolver(dataset, recid) -> path or None,
 # "implemented" flag -- an unimplemented model is reported as not_started
 # for every recording rather than treated as an inconsistency).
+#
+# Scoped to what THIS branch contributes -- G1-A/G1-B/G2-A/G2-B, each
+# renamed to <model>_full95. G3-A and G4-A are deliberately NOT listed:
+# they're already merged from a colleague's HiPerGator run at bare
+# runs/architecture_audit/G3-A|G4-A/ (kept unrenamed, per the 2026-09-03
+# decision to only rename new/unmerged work) and validated by that
+# contribution's own tooling -- see RESULTS.md. G4-A was independently
+# re-validated here too (95/95 valid) before this project's own DER/JER
+# snapshot folded it in; that check isn't reproduced by this scoped copy.
 MODELS = [
-    ("G1-A", full95_path("g1a_full95"), True),
-    ("G1-B", full95_path("g1b_full95"), True),
-    ("G2-A", full95_path("g2a_full95"), True),
-    ("G3-A", full95_path("g3a_full95"), True),
-    ("G2-B", full95_path("g2b_full95"), True),
-    ("G3-B", full95_path("g3b_full95"), False),   # FAILED its mandatory longest-file OOM gate
-                                  # 2026-08-31 -- see smoke/g3b_pilot/EN2002c_oomgate.stderr
-                                  # (tried to allocate 52.66 GiB for one attention matrix on a
-                                  # 24GB GPU). Not eligible for any batch; per
-                                  # MODEL_SELECTION_AND_INFERENCE.md, do not chunk-stitch around this.
+    ("G1-A", full95_path("g1a_nemo_full95"), True),
+    ("G1-B", full95_path("g1b_vbx_full95"), True),
+    ("G2-A", full95_path("g2a_pyannote_full95"), True),
+    ("G2-B", full95_path("g2b_msdd_full95"), True),
 ]
 
 

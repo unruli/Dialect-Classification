@@ -12,6 +12,17 @@ own exit code) -- see `MODEL_COMPLETION_STATUS.csv` /
 `scripts/` here holds that validator plus `compute_der_full95.py` (the DER/JER
 scorer below) and `rttm_tools.py` -- as run on levi-compute, with a
 hardcoded local `BASE` path; adjust that constant before reusing elsewhere.
+Both scripts are scoped to the 4 systems below -- G3-A and G4-A aren't in
+their `MODELS` lists (see "Note on G3-A" and "Note on G4-A").
+
+## Naming
+
+Directories here are named `<model>_full95` (e.g. `g1a_nemo_full95`) so the
+underlying model is recoverable from the path alone. `G3-A/` and `G4-A/`
+elsewhere in `runs/architecture_audit/` predate this and were deliberately
+left as bare system IDs rather than renamed, to avoid rewriting a
+colleague's already-merged contribution without checking with them first --
+new work goes in as `<model>_full95` going forward.
 
 ## G1-A -- NeMo MarbleNet VAD + TitaNet embeddings + spectral clustering
 - **95/95 success**, 0 failures. Checkpoints: `vad_marblenet@10477085`,
@@ -54,6 +65,16 @@ checkpoint, same deterministic non-generative algorithm) but is deliberately
 **not pushed** to avoid silently overwriting or duplicating the merged
 copy. If cross-validating the two is useful, ask and it can be added
 alongside (e.g. `G3-A-levicompute/`) rather than replacing what's here.
+
+## Note on G4-A
+
+Not run by this project's own pipeline -- 95/95 RTTMs from a colleague's
+HiPerGator run, merged into `main` via PR #2 (see `RESULTS.md`). Pulled to
+levi-compute and independently re-validated 2026-09-03 (re-parsed, duration-
+bound checked, same gate as the 4 systems above): **95/95 valid, no
+inconsistencies**. Folded into this project's local `MODEL_COMPLETION_STATUS`
+and the DER/JER snapshot below, but `G4-A/` itself is not touched or
+duplicated here -- same reasoning as G3-A above.
 
 ## Not included here
 
