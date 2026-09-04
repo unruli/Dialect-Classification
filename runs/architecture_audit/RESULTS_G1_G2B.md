@@ -48,12 +48,12 @@ new work goes in as `<model>_full95` going forward.
 
 ## DER / JER
 
-`DER_JER_recording_level_full95.csv` (475 rows = 95 recordings x 5 models,
-includes G3-A alongside these 4 for a single combined table) /
+`DER_JER_recording_level_full95.csv` (570 rows = 95 recordings x 6 models,
+includes G3-A and G4-A alongside these 4 for a single combined table) /
 `DER_JER_model_level_full95.csv` -- pyannote.metrics, overlap retained, DER
 at collar=0.0 (primary/strict) and collar=0.25 (conventional), plus JER,
 against each recording's human reference RTTM + UEM. Model order in the
-model-level CSV is the fixed pipeline order (G1-A/G1-B/G2-A/G2-B/G3-A) --
+model-level CSV is the fixed pipeline order (G1-A/G1-B/G2-A/G2-B/G3-A/G4-A) --
 not a ranking, per this project's own instructions.
 
 ## Note on G3-A
